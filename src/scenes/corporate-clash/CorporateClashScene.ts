@@ -40,6 +40,10 @@ export class CorporateClashScene implements Scene {
     for (const m of this.managers) m.onKeyDown?.(this.world, key);
   }
 
+  onMouseMove(gridCol: number, gridRow: number): void {
+    for (const m of this.managers) m.onMouseMove?.(this.world, { row: gridRow, col: gridCol });
+  }
+
   onKeyUp(key: string): void {
     for (const m of this.managers) m.onKeyUp?.(this.world, key);
   }
