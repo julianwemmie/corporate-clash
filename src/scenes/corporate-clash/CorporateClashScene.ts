@@ -28,12 +28,12 @@ export class CorporateClashScene implements Scene {
     for (const m of this.managers) m.render?.(this.world, renderer);
   }
 
-  onRightClick(): void {
-    for (const m of this.managers) m.onRightClick?.(this.world);
+  onRightClick(gridCol: number, gridRow: number): void {
+    for (const m of this.managers) m.onRightClick?.(this.world, { row: gridRow, col: gridCol });
   }
 
-  onLeftClick(): void {
-    for (const m of this.managers) m.onLeftClick?.(this.world);
+  onLeftClick(gridCol: number, gridRow: number): void {
+    for (const m of this.managers) m.onLeftClick?.(this.world, { row: gridRow, col: gridCol });
   }
 
   onKeyDown(key: string): void {

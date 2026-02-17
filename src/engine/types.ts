@@ -39,8 +39,8 @@ export interface Scene {
   init(context: GameContext): void;
   update(dt: number): void;
   render(renderer: Renderer): void;
-  onRightClick(): void;
-  onLeftClick(): void;
+  onRightClick(gridCol: number, gridRow: number): void;
+  onLeftClick(gridCol: number, gridRow: number): void;
   onMouseMove(gridCol: number, gridRow: number): void;
   onKeyDown(key: string): void;
   onKeyUp(key: string): void;

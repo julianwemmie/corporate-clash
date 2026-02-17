@@ -156,8 +156,8 @@ export function createWorld(gridSize: number): CorporateWorld {
 export interface Manager {
   update?(world: CorporateWorld, dt: number): void;
   render?(world: CorporateWorld, renderer: Renderer): void;
-  onRightClick?(world: CorporateWorld): void;
-  onLeftClick?(world: CorporateWorld): void;
+  onRightClick?(world: CorporateWorld, gridPos: GridPos): void;
+  onLeftClick?(world: CorporateWorld, gridPos: GridPos): void;
   onMouseMove?(world: CorporateWorld, gridPos: GridPos): void;
   onKeyDown?(world: CorporateWorld, key: string): void;
   onKeyUp?(world: CorporateWorld, key: string): void;
