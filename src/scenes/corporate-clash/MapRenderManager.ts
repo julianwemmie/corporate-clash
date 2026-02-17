@@ -14,6 +14,11 @@ export class MapRenderManager implements Manager {
       }
     }
 
+    if (world.hoveredTile) {
+      const { row, col } = world.hoveredTile;
+      renderer.drawRect(col, row, 1, 1, 0xffffff);  // light overlay
+    }
+
     renderer.drawText("Corporate Clash", cx, 200, { fontSize: 64, color: 0x44cc44, anchor: 0.5 });
     renderer.drawText("Press SPACE to start", cx, 320, {
       fontSize: 24,

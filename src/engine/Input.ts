@@ -17,7 +17,7 @@ export class Input {
   private onKeyDown: (e: KeyboardEvent) => void;
   private onKeyUp: (e: KeyboardEvent) => void;
 
-  constructor() {
+  constructor(canvas: HTMLCanvasElement, cellSize: number) {
     this.onKeyDown = (e: KeyboardEvent) => {
       if (GAME_KEYS.has(e.code)) {
         e.preventDefault();
@@ -32,7 +32,12 @@ export class Input {
       this.scene?.onKeyUp(e.code);
     };
 
-    
+    canvas.addEventListener("pointermove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const col = Math.floor((e.clientX - rect.left) / cellSize);
+      const row = Math.floor((e.clientY - rect.top) / cellSize);
+      this.scene?.onMouseMove(col, row);
+    });
 
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);

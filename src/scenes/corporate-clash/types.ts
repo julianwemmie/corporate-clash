@@ -122,7 +122,7 @@ export interface CorporateWorld {
   grid: Tile[][];
   selectedTile: GridPos | null;
   uiMode: UIMode;
-  hoveredTile?: GridPos;
+  hoveredTile: GridPos | null;
 }
 
 // --- Constants ---
@@ -147,6 +147,7 @@ export function createWorld(gridSize: number): CorporateWorld {
     grid,
     selectedTile: null,
     uiMode: { kind: "none" },
+    hoveredTile: null,
   };
 }
 
@@ -157,6 +158,7 @@ export interface Manager {
   render?(world: CorporateWorld, renderer: Renderer): void;
   onRightClick?(world: CorporateWorld): void;
   onLeftClick?(world: CorporateWorld): void;
+  onMouseMove?(world: CorporateWorld, gridPos: GridPos): void;
   onKeyDown?(world: CorporateWorld, key: string): void;
   onKeyUp?(world: CorporateWorld, key: string): void;
   destroy?(): void;

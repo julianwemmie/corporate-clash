@@ -9,8 +9,8 @@ export class InputManager implements Manager {
 
   }
 
-  onMouseMove(world: CorporateWorld, gridPos: GridPos): void {
-
+  onMouseMove(world: CorporateWorld, gridPos: GridPos | null): void {
+    world.hoveredTile = gridPos;
   }
 
   update(world: CorporateWorld, _dt: number): void {
