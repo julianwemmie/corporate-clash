@@ -41,6 +41,7 @@ export interface Scene {
   render(renderer: Renderer): void;
   onRightClick(): void;
   onLeftClick(): void;
+  onMouseMove(gridCol: number, gridRow: number): void;
   onKeyDown(key: string): void;
   onKeyUp(key: string): void;
   destroy(): void;
