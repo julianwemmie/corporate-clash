@@ -2,10 +2,9 @@
 
 export const GRID_SIZE = 4;
 export const CELL_SIZE = 150;
-export const UI_BAR_WIDTH = 200; // 400px
-export const UI_BAR_HEIGHT = 200; // 400px
-export const CANVAS_HEIGHT = GRID_SIZE * CELL_SIZE; // 600px
-export const CANVAS_WIDTH = GRID_SIZE * CELL_SIZE + UI_BAR_WIDTH; // 600px
+export const UI_BAR_WIDTH = 200;
+export const CANVAS_HEIGHT = GRID_SIZE * CELL_SIZE;
+export const CANVAS_WIDTH = GRID_SIZE * CELL_SIZE + UI_BAR_WIDTH;
 export const TICK_RATE_MS = 150; // ~6.67 ticks/sec
 export const TICK_RATE_S = TICK_RATE_MS / 1000; // 0.15s per tick
 export const MAX_ACCUMULATOR_MS = 1000;

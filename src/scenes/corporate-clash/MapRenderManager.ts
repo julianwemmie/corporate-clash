@@ -1,11 +1,8 @@
 import type { Renderer } from '../../engine/types.js';
-import { CANVAS_WIDTH, UI_BAR_WIDTH, CELL_SIZE } from '../../engine/types.js';
 import type { CorporateWorld, Manager } from './types.js';
 
 export class MapRenderManager implements Manager {
   render(world: CorporateWorld, renderer: Renderer): void {
-    const cx = CANVAS_WIDTH / 2;
-
     // draw alternating light/dark grid background
     for (let row = 0; row < world.grid.length; row++) {
       for (let col = 0; col < world.grid[row].length; col++) {
