@@ -30,7 +30,7 @@ export class EmployeeManager implements Manager {
       return;
     }
 
-    const index = parseInt(key) - 1;
+    const index = parseInt(key.replace('Digit', '')) - 1;
     const type = EMPLOYEE_TYPES[index];
 
     if (!type) return;

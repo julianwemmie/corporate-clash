@@ -29,7 +29,7 @@ export class BuildingManager implements Manager {
       return;
     }
 
-    const index = parseInt(key) - 1;
+    const index = parseInt(key.replace('Digit', '')) - 1;
     const type = BUILDING_TYPES[index];
 
     if (!type) return;
