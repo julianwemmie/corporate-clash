@@ -1,5 +1,5 @@
 import type { Renderer } from '../../engine/types.js';
-import { CELL_SIZE } from '../../engine/types.js';
+import { CELL_SIZE, LEFT_PANEL_WIDTH } from '../../engine/types.js';
 import {
   BUILDING_CONFIG,
   BUILDING_TYPES,
@@ -9,8 +9,11 @@ import {
   type GridPos,
   type Manager,
 } from './types.js';
+import { Assets, Sprite, Texture } from 'pixi.js';
 
 export class MapManager implements Manager {
+  private buildingTextures = new Map<string, Texture>();
+
   private pixelToGrid(pixelX: number, pixelY: number): GridPos {
     return {
       row: Math.floor(pixelY / CELL_SIZE),
@@ -117,17 +120,54 @@ export class MapManager implements Manager {
   }
 
   render(world: CorporateWorld, renderer: Renderer): void {
+    // Load textures if not loaded
+    if (this.buildingTextures.size === 0) {
+      Assets.load([
+        '/assets/icons/building-smallOffice.png',
+        '/assets/icons/building-mediumOffice.png',
+        '/assets/icons/building-skyscraper.png',
+      ]).then((textures) => {
+        this.buildingTextures.set(
+          'smallOffice',
+          textures['/assets/icons/building-smallOffice.png'],
+        );
+        this.buildingTextures.set(
+          'mediumOffice',
+          textures['/assets/icons/building-mediumOffice.png'],
+        );
+        this.buildingTextures.set(
+          'skyscraper',
+          textures['/assets/icons/building-skyscraper.png'],
+        );
+      });
+    }
+
     // draw alternating light/dark grid background
     for (let row = 0; row < world.grid.length; row++) {
       for (let col = 0; col < world.grid[row].length; col++) {
-        const color = (row + col) % 2 === 0 ? 0x333333 : 0x222222;
+        const tile = world.grid[row][col];
+
         renderer.drawRect(
           col * CELL_SIZE,
           row * CELL_SIZE,
           CELL_SIZE,
           CELL_SIZE,
-          color,
+          (row + col) % 2 === 0 ? 0x333333 : 0x222222,
         );
+
+        // Draw building image on top => Use offset from left-panel
+        if (tile.building) {
+          const texture = this.buildingTextures.get(tile.building.type);
+          if (texture) {
+            const sprite = new Sprite(texture);
+            sprite.anchor.set(0.5, 0.5);
+            sprite.x = LEFT_PANEL_WIDTH + col * CELL_SIZE + CELL_SIZE / 2;
+            sprite.y = row * CELL_SIZE + CELL_SIZE / 2;
+            sprite.width = CELL_SIZE;
+            sprite.height = CELL_SIZE;
+            renderer.stage.addChild(sprite);
+          }
+        }
       }
     }
 
