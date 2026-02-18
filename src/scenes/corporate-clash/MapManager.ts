@@ -1,5 +1,5 @@
 import type { Renderer } from '../../engine/types.js';
-import { CELL_SIZE, LEFT_PANEL_WIDTH } from '../../engine/types.js';
+import { CELL_SIZE } from '../../engine/types.js';
 import { type CorporateWorld, type GridPos, type Manager } from './types.js';
 
 export class MapManager implements Manager {
@@ -34,7 +34,7 @@ export class MapManager implements Manager {
       for (let col = 0; col < world.grid[row].length; col++) {
         const color = (row + col) % 2 === 0 ? 0x333333 : 0x222222;
         renderer.drawRect(
-          LEFT_PANEL_WIDTH + col * CELL_SIZE,
+          col * CELL_SIZE,
           row * CELL_SIZE,
           CELL_SIZE,
           CELL_SIZE,
@@ -46,12 +46,12 @@ export class MapManager implements Manager {
     if (world.hoveredTile) {
       const { row, col } = world.hoveredTile;
       renderer.drawRect(
-        LEFT_PANEL_WIDTH + col * CELL_SIZE,
+        col * CELL_SIZE,
         row * CELL_SIZE,
         CELL_SIZE,
         CELL_SIZE,
         0xffffff,
-      ); // light overlay
+      ); 
     }
   }
 }

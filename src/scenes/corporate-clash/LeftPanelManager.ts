@@ -21,21 +21,7 @@ export class LeftPanelManager implements Manager {
 
   render(world: CorporateWorld, renderer: Renderer): void {
     if (world.phase === 'playing') {
-      // Right grid
       renderer.drawRect(0, 0, LEFT_PANEL_WIDTH, CANVAS_HEIGHT, 0x000000);
-
-      // renderer.drawText(`$${funds.toLocaleString()}`, 10, 10, {
-      //   fontSize: 20,
-      //   color: 0x2ecc71,
-      // });
-      // renderer.drawText(`Buildings: ${buildings}`, 10, 36, {
-      //   fontSize: 14,
-      //   color: 0xcccccc,
-      // });
-      // renderer.drawText(`Employees: ${employees}`, 10, 56, {
-      //   fontSize: 14,
-      //   color: 0xcccccc,
-      // });
       return;
     }
   }

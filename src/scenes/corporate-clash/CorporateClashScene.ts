@@ -2,9 +2,11 @@ import {
   type Scene,
   type GameContext,
   type Renderer,
-  CANVAS_WIDTH,
+  CELL_SIZE,
+  GRID_SIZE,
   LEFT_PANEL_WIDTH,
 } from '../../engine/types.js';
+import { createOffsetRenderer } from '../../engine/Renderer.js';
 import type { CorporateWorld, Manager } from './types.js';
 import { createWorld } from './types.js';
 import { RightPanelManager } from './RightPanelManager.js';
@@ -12,22 +14,24 @@ import { LeftPanelManager } from './LeftPanelManager.js';
 import { MapManager } from './MapManager.js';
 import { EconomyManager } from './EconomyManager.js';
 
+function getManagerOrigin(manager: Manager): { x: number; y: number } {
+  if (manager instanceof LeftPanelManager) {
+    return { x: 0, y: 0 };
+  } else if (manager instanceof MapManager) {
+    return { x: LEFT_PANEL_WIDTH, y: 0 };
+  } else if (manager instanceof RightPanelManager) {
+    return { x: LEFT_PANEL_WIDTH + GRID_SIZE * CELL_SIZE, y: 0 };
+  }
+  return { x: 0, y: 0 };
+}
+
 function calculateRelativePixelXY(
   pixelX: number,
   pixelY: number,
   manager: Manager,
 ): { pixelX: number; pixelY: number } {
-  if (manager instanceof LeftPanelManager) {
-    return { pixelX, pixelY };
-  } else if (manager instanceof MapManager) {
-    return { pixelX: pixelX - LEFT_PANEL_WIDTH, pixelY: pixelY };
-  } else if (manager instanceof RightPanelManager) {
-    return {
-      pixelX: pixelX - (CANVAS_WIDTH - LEFT_PANEL_WIDTH),
-      pixelY: pixelY,
-    };
-  }
-  return { pixelX, pixelY };
+  const origin = getManagerOrigin(manager);
+  return { pixelX: pixelX - origin.x, pixelY: pixelY - origin.y };
 }
 
 export class CorporateClashScene implements Scene {
@@ -51,7 +55,9 @@ export class CorporateClashScene implements Scene {
   render(renderer: Renderer): void {
     renderer.clear();
     for (const m of this.managers) {
-      m.render?.(this.world, renderer);
+      const origin = getManagerOrigin(m);
+      const offsetRenderer = createOffsetRenderer(renderer, origin.x, origin.y);
+      m.render?.(this.world, offsetRenderer);
     }
   }
 
