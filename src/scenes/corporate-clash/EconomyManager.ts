@@ -1,4 +1,5 @@
-import { CorporateWorld, EMPLOYEE_CONFIG, Manager } from "./types";
+import type { CorporateWorld, Manager } from "./types.js";
+import { EMPLOYEE_CONFIG } from "./types.js";
 
 export class EconomyManager implements Manager {
   update(world: CorporateWorld, _dt: number): void {

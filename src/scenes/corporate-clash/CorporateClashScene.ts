@@ -3,6 +3,8 @@ import type { CorporateWorld, Manager } from "./types.js";
 import { createWorld } from "./types.js";
 import { InputManager } from "./InputManager.js";
 import { MapRenderManager } from "./MapRenderManager.js";
+import { HUDManager } from "./HUDManager.js";
+import { EconomyManager } from "./EconomyManager.js";
 
 export class CorporateClashScene implements Scene {
   private world!: CorporateWorld;
@@ -12,10 +14,12 @@ export class CorporateClashScene implements Scene {
     this.world = createWorld(ctx.gridSize);
     this.managers = [
       new InputManager(),
+      new EconomyManager(),
       new MapRenderManager(),
       // new GameplayManager(),
       // new RenderManager(),
       // new UIManager(),
+      new HUDManager(),
     ];
   }
 
@@ -29,11 +33,13 @@ export class CorporateClashScene implements Scene {
   }
 
   onRightClick(gridCol: number, gridRow: number): void {
-    for (const m of this.managers) m.onRightClick?.(this.world, { row: gridRow, col: gridCol });
+    for (const m of this.managers)
+      m.onRightClick?.(this.world, { row: gridRow, col: gridCol });
   }
 
   onLeftClick(gridCol: number, gridRow: number): void {
-    for (const m of this.managers) m.onLeftClick?.(this.world, { row: gridRow, col: gridCol });
+    for (const m of this.managers)
+      m.onLeftClick?.(this.world, { row: gridRow, col: gridCol });
   }
 
   onKeyDown(key: string): void {
@@ -41,7 +47,8 @@ export class CorporateClashScene implements Scene {
   }
 
   onMouseMove(gridCol: number, gridRow: number): void {
-    for (const m of this.managers) m.onMouseMove?.(this.world, { row: gridRow, col: gridCol });
+    for (const m of this.managers)
+      m.onMouseMove?.(this.world, { row: gridRow, col: gridCol });
   }
 
   onKeyUp(key: string): void {
