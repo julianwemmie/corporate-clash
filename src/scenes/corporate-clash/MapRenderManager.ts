@@ -1,5 +1,5 @@
 import type { Renderer } from '../../engine/types.js';
-import { CANVAS_WIDTH } from '../../engine/types.js';
+import { CANVAS_WIDTH, UI_BAR_WIDTH, CELL_SIZE } from '../../engine/types.js';
 import type { CorporateWorld, Manager } from './types.js';
 
 export class MapRenderManager implements Manager {
