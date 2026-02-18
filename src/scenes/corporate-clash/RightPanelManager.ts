@@ -1,24 +1,67 @@
 import type { Renderer } from '../../engine/types.js';
+import { CANVAS_HEIGHT, RIGHT_PANEL_WIDTH } from '../../engine/types.js';
 import {
   BUILDING_CONFIG,
+  BUILDING_TYPES,
   EMPLOYEE_CONFIG,
   EMPLOYEE_TYPES,
   type CorporateWorld,
   type Manager,
 } from './types.js';
-import { GRID_SIZE, CELL_SIZE } from '../../engine/types.js';
 
-const PANEL_X = GRID_SIZE * CELL_SIZE + 10;
+const PANEL_X = 10;
 const LINE_HEIGHT = 22;
 const HEADER_SIZE = 18;
 const OPTION_SIZE = 13;
 const DIM = 0x666666;
 const BRIGHT = 0xffffff;
 
-export class EmployeePanelManager implements Manager {
+export class RightPanelManager implements Manager {
   render(world: CorporateWorld, renderer: Renderer): void {
-    if (world.uiMode.kind !== 'employeePanel') return;
-    this.renderEmployeePanel(world, renderer);
+    if (world.phase !== 'playing') return;
+
+    renderer.drawRect(0, 0, RIGHT_PANEL_WIDTH, CANVAS_HEIGHT, 0x000000);
+
+    if (world.uiMode.kind === 'buildingPanel') {
+      this.renderBuildingPanel(world, renderer);
+    } else if (world.uiMode.kind === 'employeePanel') {
+      this.renderEmployeePanel(world, renderer);
+    }
+  }
+
+  private renderBuildingPanel(world: CorporateWorld, renderer: Renderer): void {
+    let y = 10;
+
+    renderer.drawText('Build', PANEL_X, y, {
+      fontSize: HEADER_SIZE,
+      color: 0x4a90d9,
+    });
+    y += LINE_HEIGHT + 10;
+
+    BUILDING_TYPES.forEach((type, i) => {
+      const config = BUILDING_CONFIG[type];
+      const canAfford = world.funds >= config.cost;
+      const color = canAfford ? BRIGHT : DIM;
+
+      renderer.drawText(`[${i + 1}] ${config.label}`, PANEL_X, y, {
+        fontSize: OPTION_SIZE,
+        color,
+      });
+      y += LINE_HEIGHT - 4;
+      renderer.drawText(
+        `    $${config.cost.toLocaleString()}  cap: ${config.capacity}`,
+        PANEL_X,
+        y,
+        { fontSize: OPTION_SIZE - 2, color: 0xaaaaaa },
+      );
+      y += LINE_HEIGHT;
+    });
+
+    y += 4;
+    renderer.drawText('[ESC] Close', PANEL_X, y, {
+      fontSize: OPTION_SIZE,
+      color: 0xaaaaaa,
+    });
   }
 
   private renderEmployeePanel(world: CorporateWorld, renderer: Renderer): void {

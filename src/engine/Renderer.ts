@@ -1,6 +1,26 @@
 import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
 import type { Renderer as IRenderer } from './types.js';
-import { CELL_SIZE } from './types.js';
+
+export function createOffsetRenderer(
+  inner: IRenderer,
+  offsetX: number,
+  offsetY: number,
+): IRenderer {
+  return {
+    get stage() {
+      return inner.stage;
+    },
+    drawRect(pixelX, pixelY, width, height, color) {
+      inner.drawRect(pixelX + offsetX, pixelY + offsetY, width, height, color);
+    },
+    drawText(text, pixelX, pixelY, options) {
+      inner.drawText(text, pixelX + offsetX, pixelY + offsetY, options);
+    },
+    clear() {
+      inner.clear();
+    },
+  };
+}
 
 export class Renderer implements IRenderer {
   private app: Application;
@@ -17,19 +37,14 @@ export class Renderer implements IRenderer {
   }
 
   drawRect(
-    gridX: number,
-    gridY: number,
-    widthCells: number,
-    heightCells: number,
+    pixelX: number,
+    pixelY: number,
+    width: number,
+    height: number,
     color: number,
   ): void {
     const g = new Graphics();
-    g.rect(
-      gridX * CELL_SIZE,
-      gridY * CELL_SIZE,
-      widthCells * CELL_SIZE,
-      heightCells * CELL_SIZE,
-    );
+    g.rect(pixelX, pixelY, width, height);
     g.fill(color);
     this.drawContainer.addChild(g);
   }
