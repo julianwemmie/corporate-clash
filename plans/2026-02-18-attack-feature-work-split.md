@@ -56,6 +56,7 @@ Countdown on left panel   Store report on world       Space key handling
 ```
 
 All three can work in parallel. Agree on shared types upfront:
+
 - `attackTimer: number` and `attackActive: boolean` on `CorporateWorld`
 - `AttackReport { buildingsLost: number, employeesLost: number }` on world state
 

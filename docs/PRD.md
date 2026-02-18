@@ -74,12 +74,12 @@ AI and multiplayer support.
 
 ### Layer 1 - Done by Wed. EOD
 
-- [X] Create the Canvas Map (4x4 grid of squares)
-- [X] Be able to spend money and place buildings on empty plots
+- [x] Create the Canvas Map (4x4 grid of squares)
+- [x] Be able to spend money and place buildings on empty plots
   - Click and tap buildings on empty plots
   - Basic validation
-- [X] Be able to place people in buildings and manage headcount
-- [X] Resource stats
+- [x] Be able to place people in buildings and manage headcount
+- [x] Resource stats
 
 ### Layer 2
 
