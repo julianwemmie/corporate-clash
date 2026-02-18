@@ -22,9 +22,8 @@ export class HUDManager implements Manager {
   render(world: CorporateWorld, renderer: Renderer): void {
     const { funds, buildings, employees } = this.display(world);
 
-    console.log('world', world.phase);
-
     if (world.phase === 'playing') {
+      // Right grid
       renderer.drawRect(GRID_SIZE, 0, 1, GRID_SIZE, 0x000000);
       console.log('here');
 
