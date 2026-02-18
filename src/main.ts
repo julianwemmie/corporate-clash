@@ -1,7 +1,7 @@
-import { Application } from "pixi.js";
-import { Game } from "./engine/Game.js";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./engine/types.js";
-import { CorporateClashScene } from "./scenes/corporate-clash/CorporateClashScene.js";
+import { Application } from 'pixi.js';
+import { Game } from './engine/Game.js';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from './engine/types.js';
+import { CorporateClashScene } from './scenes/corporate-clash/CorporateClashScene.js';
 
 async function bootstrap() {
   const app = new Application();
@@ -11,8 +11,8 @@ async function bootstrap() {
     background: 0x1a1a2e,
   });
 
-  const container = document.getElementById("app");
-  if (!container) throw new Error("Missing #app element");
+  const container = document.getElementById('app');
+  if (!container) throw new Error('Missing #app element');
   container.appendChild(app.canvas);
 
   const game = new Game(app);

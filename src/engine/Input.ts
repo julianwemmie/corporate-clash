@@ -1,15 +1,15 @@
-import type { Scene } from "./types.js";
+import type { Scene } from './types.js';
 
 const GAME_KEYS = new Set([
-  "ArrowUp",
-  "ArrowDown",
-  "ArrowLeft",
-  "ArrowRight",
-  "KeyW",
-  "KeyA",
-  "KeyS",
-  "KeyD",
-  "Space",
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'KeyW',
+  'KeyA',
+  'KeyS',
+  'KeyD',
+  'Space',
 ]);
 
 export class Input {
@@ -33,14 +33,14 @@ export class Input {
       } else if (e.button === 0) {
         this.scene?.onLeftClick(col, row);
       }
-    }
+    };
 
     this.onMouseMove = (e: MouseEvent) => {
       const rect = this.canvas.getBoundingClientRect();
       const col = Math.floor((e.clientX - rect.left) / cellSize);
       const row = Math.floor((e.clientY - rect.top) / cellSize);
       this.scene?.onMouseMove(col, row);
-    }
+    };
 
     this.onKeyDown = (e: KeyboardEvent) => {
       if (GAME_KEYS.has(e.code)) {
@@ -56,10 +56,10 @@ export class Input {
       this.scene?.onKeyUp(e.code);
     };
 
-    this.canvas.addEventListener("pointerdown", this.onClick);
-    this.canvas.addEventListener("pointermove", this.onMouseMove);
-    window.addEventListener("keydown", this.onKeyDown);
-    window.addEventListener("keyup", this.onKeyUp);
+    this.canvas.addEventListener('pointerdown', this.onClick);
+    this.canvas.addEventListener('pointermove', this.onMouseMove);
+    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keyup', this.onKeyUp);
   }
 
   setScene(scene: Scene | null): void {
@@ -67,9 +67,9 @@ export class Input {
   }
 
   destroy(): void {
-    this.canvas.removeEventListener("pointerdown", this.onClick);
-    window.removeEventListener("keydown", this.onKeyDown);
-    window.removeEventListener("keyup", this.onKeyUp);
-    this.canvas.removeEventListener("pointermove", this.onMouseMove);
+    this.canvas.removeEventListener('pointerdown', this.onClick);
+    window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('keyup', this.onKeyUp);
+    this.canvas.removeEventListener('pointermove', this.onMouseMove);
   }
 }

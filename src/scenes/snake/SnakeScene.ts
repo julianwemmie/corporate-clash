@@ -1,10 +1,10 @@
-import type { Scene, GameContext, Renderer } from "../../engine/types.js";
-import type { Manager, SnakeWorld } from "./types.js";
-import { createWorld } from "./types.js";
-import { InputManager } from "./InputManager.js";
-import { GameplayManager } from "./GameplayManager.js";
-import { RenderManager } from "./RenderManager.js";
-import { UIManager } from "./UIManager.js";
+import type { Scene, GameContext, Renderer } from '../../engine/types.js';
+import type { Manager, SnakeWorld } from './types.js';
+import { createWorld } from './types.js';
+import { InputManager } from './InputManager.js';
+import { GameplayManager } from './GameplayManager.js';
+import { RenderManager } from './RenderManager.js';
+import { UIManager } from './UIManager.js';
 
 export class SnakeScene implements Scene {
   private world!: SnakeWorld;
