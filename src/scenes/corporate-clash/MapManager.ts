@@ -36,8 +36,10 @@ export class MapManager implements Manager {
     const gridPos = this.pixelToGrid(pixelX, pixelY);
     if (!this.isInBounds(world, gridPos)) return;
 
-    // Toggle off current panel
-    if (world.uiMode.kind === 'buildingPanel' || world.uiMode.kind === 'employeePanel') {
+    if (
+      world.uiMode.kind === 'buildingPanel' ||
+      world.uiMode.kind === 'employeePanel'
+    ) {
       world.uiMode = { kind: 'none' };
       return;
     }

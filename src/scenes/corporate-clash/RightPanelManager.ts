@@ -64,10 +64,7 @@ export class RightPanelManager implements Manager {
     });
   }
 
-  private renderEmployeePanel(
-    world: CorporateWorld,
-    renderer: Renderer,
-  ): void {
+  private renderEmployeePanel(world: CorporateWorld, renderer: Renderer): void {
     if (world.uiMode.kind !== 'employeePanel') return;
     const { row, col } = world.uiMode.tile;
     const building = world.grid[row][col].building;
