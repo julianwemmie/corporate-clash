@@ -59,6 +59,13 @@ That includes:
 - **Players:** One Player (Single Player)
 - **Funds:** 500K
 
+### Attacks
+
+Every so often, your corporation is attacked by a rival corporation. An alert pops up, saying "You are being attacked!"
+The user can press space to advance the status. The second page of the status says how many employees and buildings you lost.
+
+On the bottom of the left side panel, there is a countdown until the next attack.
+
 ## How: What is the experiment plan?
 
 AI and multiplayer support.
@@ -67,12 +74,12 @@ AI and multiplayer support.
 
 ### Layer 1 - Done by Wed. EOD
 
-- [ ] Create the Canvas Map (4x4 grid of squares)
-- [ ] Be able to spend money and place buildings on empty plots
+- [X] Create the Canvas Map (4x4 grid of squares)
+- [X] Be able to spend money and place buildings on empty plots
   - Click and tap buildings on empty plots
   - Basic validation
-- [ ] Be able to place people in buildings and manage headcount
-- [ ] Resource stats
+- [X] Be able to place people in buildings and manage headcount
+- [X] Resource stats
 
 ### Layer 2
 
