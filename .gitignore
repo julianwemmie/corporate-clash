@@ -6,3 +6,4 @@ refactor-plan.md
 .claude/settings.local.json
 
 .vscode/
+.DS_Store
