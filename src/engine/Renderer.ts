@@ -1,4 +1,12 @@
-import { Application, Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js';
+import {
+  Application,
+  Container,
+  Graphics,
+  Sprite,
+  Text,
+  TextStyle,
+  Texture,
+} from 'pixi.js';
 import { type Renderer as IRenderer } from './types.js';
 
 export function createOffsetRenderer(
@@ -70,7 +78,17 @@ export class Renderer implements IRenderer {
     this.drawContainer.addChild(t);
   }
 
-  drawSprite(texture: Texture, pixelX: number, pixelY: number, options?: { anchorX?: number; anchorY?: number; width?: number, height?: number }): void {
+  drawSprite(
+    texture: Texture,
+    pixelX: number,
+    pixelY: number,
+    options?: {
+      anchorX?: number;
+      anchorY?: number;
+      width?: number;
+      height?: number;
+    },
+  ): void {
     const sprite = new Sprite(texture);
     sprite.anchor.set(0, 0);
     sprite.x = pixelX;

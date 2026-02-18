@@ -159,12 +159,10 @@ export class MapManager implements Manager {
         if (tile.building) {
           const texture = this.buildingTextures.get(tile.building.type);
           if (texture) {
-            renderer.drawSprite(
-              texture,
-              col * CELL_SIZE,
-              row * CELL_SIZE,
-              { width: CELL_SIZE, height: CELL_SIZE },
-            );
+            renderer.drawSprite(texture, col * CELL_SIZE, row * CELL_SIZE, {
+              width: CELL_SIZE,
+              height: CELL_SIZE,
+            });
           }
         }
       }

@@ -1,4 +1,4 @@
-import {Container, Texture} from 'pixi.js';
+import { Container, Texture } from 'pixi.js';
 
 // --- Game Constants ---
 
@@ -40,7 +40,12 @@ export interface Renderer {
     texture: Texture,
     pixelX: number,
     pixelY: number,
-    options?: { anchorX?: number; anchorY?: number, width?: number, height?: number },
+    options?: {
+      anchorX?: number;
+      anchorY?: number;
+      width?: number;
+      height?: number;
+    },
   ): void;
   clear(): void;
   readonly stage: Container;
