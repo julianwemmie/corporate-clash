@@ -32,7 +32,7 @@ export class Game {
   constructor(app: Application) {
     this.app = app;
     this.renderer = new Renderer(app);
-    this.input = new Input(this.app.canvas, CELL_SIZE);
+    this.input = new Input(this.app.canvas);
   }
 
   loadScene(scene: Scene): void {

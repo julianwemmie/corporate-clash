@@ -1,8 +1,8 @@
 import type { Renderer } from '../../engine/types.js';
 import type { CorporateWorld, Manager } from './types.js';
-import { GRID_SIZE } from '../../engine/types.js';
+import { CANVAS_HEIGHT, GRID_SIZE, LEFT_PANEL_WIDTH } from '../../engine/types.js';
 
-export class HUDManager implements Manager {
+export class LeftPanelManager implements Manager {
   display(world: CorporateWorld) {
     let buildings = 0;
     let employees = 0;
@@ -24,8 +24,7 @@ export class HUDManager implements Manager {
 
     if (world.phase === 'playing') {
       // Right grid
-      renderer.drawRect(GRID_SIZE, 0, 1, GRID_SIZE, 0x000000);
-      console.log('here');
+      renderer.drawRect(0, 0, LEFT_PANEL_WIDTH, CANVAS_HEIGHT, 0x000000);
 
       // renderer.drawText(`$${funds.toLocaleString()}`, 10, 10, {
       //   fontSize: 20,

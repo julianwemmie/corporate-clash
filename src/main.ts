@@ -1,13 +1,13 @@
 import { Application } from 'pixi.js';
 import { Game } from './engine/Game.js';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, UI_BAR_WIDTH } from './engine/types.js';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from './engine/types.js';
 import { CorporateClashScene } from './scenes/corporate-clash/CorporateClashScene.js';
 
 async function bootstrap() {
   const app = new Application();
 
   await app.init({
-    width: CANVAS_WIDTH + UI_BAR_WIDTH * 2,
+    width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,
     background: 0x1a1a2e,
   });

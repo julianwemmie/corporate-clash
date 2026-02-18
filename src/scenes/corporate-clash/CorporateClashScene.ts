@@ -1,10 +1,20 @@
-import type { Scene, GameContext, Renderer } from '../../engine/types.js';
+import { type Scene, type GameContext, type Renderer, CANVAS_WIDTH, LEFT_PANEL_WIDTH } from '../../engine/types.js';
 import type { CorporateWorld, Manager } from './types.js';
 import { createWorld } from './types.js';
-import { InputManager } from './InputManager.js';
-import { MapRenderManager } from './MapRenderManager.js';
-import { HUDManager } from './HUDManager.js';
-import { EconomyManager } from './EconomyManager.js';
+import { RightPanelManager } from './RightPanelManager.js';
+import { LeftPanelManager } from './LeftPanelManager.js';
+import { MapManager } from './MapManager.js';
+
+function calcualteRelativePixelXY(pixelX: number, pixelY: number, manager: Manager): { pixelX: number; pixelY: number } {
+  if (manager instanceof LeftPanelManager) {
+    return { pixelX, pixelY };
+  } else if (manager instanceof MapManager) {
+    return { pixelX: pixelX - LEFT_PANEL_WIDTH, pixelY };
+  } else if (manager instanceof RightPanelManager) {
+    return { pixelX: pixelX - (CANVAS_WIDTH - LEFT_PANEL_WIDTH), pixelY };
+  }
+  return { pixelX, pixelY };
+}
 
 export class CorporateClashScene implements Scene {
   private world!: CorporateWorld;
@@ -13,13 +23,9 @@ export class CorporateClashScene implements Scene {
   init(ctx: GameContext): void {
     this.world = createWorld(ctx.gridSize);
     this.managers = [
-      new InputManager(),
-      new EconomyManager(),
-      new MapRenderManager(),
-      // new GameplayManager(),
-      // new RenderManager(),
-      // new UIManager(),
-      new HUDManager(),
+      new MapManager(),
+      new LeftPanelManager(),
+      new RightPanelManager(),
     ];
   }
 
@@ -29,26 +35,34 @@ export class CorporateClashScene implements Scene {
 
   render(renderer: Renderer): void {
     renderer.clear();
-    for (const m of this.managers) m.render?.(this.world, renderer);
+    for (const m of this.managers) {
+      m.render?.(this.world, renderer)
+    };
   }
 
-  onRightClick(gridCol: number, gridRow: number): void {
-    for (const m of this.managers)
-      m.onRightClick?.(this.world, { row: gridRow, col: gridCol });
+  onRightClick(pixelX: number, pixelY: number): void {
+    for (const m of this.managers) {
+      const { pixelX: relativeX, pixelY: relativeY } = calcualteRelativePixelXY(pixelX, pixelY, m);
+      m.onRightClick?.(this.world, relativeX, relativeY);
+    }
   }
 
-  onLeftClick(gridCol: number, gridRow: number): void {
-    for (const m of this.managers)
-      m.onLeftClick?.(this.world, { row: gridRow, col: gridCol });
+  onLeftClick(pixelX: number, pixelY: number): void {
+    for (const m of this.managers) {
+      const { pixelX: relativeX, pixelY: relativeY } = calcualteRelativePixelXY(pixelX, pixelY, m);
+      m.onLeftClick?.(this.world, relativeX, relativeY);
+    }
+  }
+
+  onMouseMove(pixelX: number, pixelY: number): void {
+    for (const m of this.managers) {
+      const { pixelX: relativeX, pixelY: relativeY } = calcualteRelativePixelXY(pixelX, pixelY, m);
+      m.onMouseMove?.(this.world, relativeX, relativeY);
+    }
   }
 
   onKeyDown(key: string): void {
     for (const m of this.managers) m.onKeyDown?.(this.world, key);
-  }
-
-  onMouseMove(gridCol: number, gridRow: number): void {
-    for (const m of this.managers)
-      m.onMouseMove?.(this.world, { row: gridRow, col: gridCol });
   }
 
   onKeyUp(key: string): void {

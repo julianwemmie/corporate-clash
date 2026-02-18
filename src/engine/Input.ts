@@ -20,26 +20,19 @@ export class Input {
   private onKeyDown: (e: KeyboardEvent) => void;
   private onKeyUp: (e: KeyboardEvent) => void;
 
-  constructor(canvas: HTMLCanvasElement, cellSize: number) {
+  constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
 
     this.onClick = (e: MouseEvent) => {
-      const rect = this.canvas.getBoundingClientRect();
-      const col = Math.floor((e.clientX - rect.left) / cellSize);
-      const row = Math.floor((e.clientY - rect.top) / cellSize);
-
       if (e.button === 2) {
-        this.scene?.onRightClick(col, row);
+        this.scene?.onRightClick(e.clientX, e.clientY);
       } else if (e.button === 0) {
-        this.scene?.onLeftClick(col, row);
+        this.scene?.onLeftClick(e.clientX, e.clientY);
       }
     };
 
     this.onMouseMove = (e: MouseEvent) => {
-      const rect = this.canvas.getBoundingClientRect();
-      const col = Math.floor((e.clientX - rect.left) / cellSize);
-      const row = Math.floor((e.clientY - rect.top) / cellSize);
-      this.scene?.onMouseMove(col, row);
+      this.scene?.onMouseMove(e.clientX, e.clientY);
     };
 
     this.onKeyDown = (e: KeyboardEvent) => {

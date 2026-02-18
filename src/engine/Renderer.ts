@@ -17,18 +17,18 @@ export class Renderer implements IRenderer {
   }
 
   drawRect(
-    gridX: number,
-    gridY: number,
-    widthCells: number,
-    heightCells: number,
+    pixelX: number,
+    pixelY: number,
+    width: number,
+    height: number,
     color: number,
   ): void {
     const g = new Graphics();
     g.rect(
-      gridX * CELL_SIZE,
-      gridY * CELL_SIZE,
-      widthCells * CELL_SIZE,
-      heightCells * CELL_SIZE,
+      pixelX,
+      pixelY,
+      width,
+      height,
     );
     g.fill(color);
     this.drawContainer.addChild(g);
