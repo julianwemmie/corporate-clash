@@ -1,5 +1,6 @@
-import type { Renderer } from "../../engine/types.js";
-import type { CorporateWorld, Manager } from "./types.js";
+import type { Renderer } from '../../engine/types.js';
+import type { CorporateWorld, Manager } from './types.js';
+import { GRID_SIZE } from '../../engine/types.js';
 
 export class HUDManager implements Manager {
   display(world: CorporateWorld) {
@@ -21,17 +22,25 @@ export class HUDManager implements Manager {
   render(world: CorporateWorld, renderer: Renderer): void {
     const { funds, buildings, employees } = this.display(world);
 
-    renderer.drawText(`$${funds.toLocaleString()}`, 10, 10, {
-      fontSize: 20,
-      color: 0x2ecc71,
-    });
-    renderer.drawText(`Buildings: ${buildings}`, 10, 36, {
-      fontSize: 14,
-      color: 0xcccccc,
-    });
-    renderer.drawText(`Employees: ${employees}`, 10, 56, {
-      fontSize: 14,
-      color: 0xcccccc,
-    });
+    console.log('world', world.phase);
+
+    if (world.phase === 'playing') {
+      renderer.drawRect(GRID_SIZE, 0, 1, GRID_SIZE, 0x000000);
+      console.log('here');
+
+      // renderer.drawText(`$${funds.toLocaleString()}`, 10, 10, {
+      //   fontSize: 20,
+      //   color: 0x2ecc71,
+      // });
+      // renderer.drawText(`Buildings: ${buildings}`, 10, 36, {
+      //   fontSize: 14,
+      //   color: 0xcccccc,
+      // });
+      // renderer.drawText(`Employees: ${employees}`, 10, 56, {
+      //   fontSize: 14,
+      //   color: 0xcccccc,
+      // });
+      return;
+    }
   }
 }

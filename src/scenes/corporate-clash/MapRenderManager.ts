@@ -19,20 +19,20 @@ export class MapRenderManager implements Manager {
       renderer.drawRect(col, row, 1, 1, 0xffffff); // light overlay
     }
 
-    renderer.drawText('Corporate Clash', cx, 200, {
-      fontSize: 64,
-      color: 0x44cc44,
-      anchor: 0.5,
-    });
-    renderer.drawText('Press SPACE to start', cx, 320, {
-      fontSize: 24,
-      color: 0xaaaaaa,
-      anchor: 0.5,
-    });
-    renderer.drawText('Arrow keys or WASD to move', cx, 360, {
-      fontSize: 18,
-      color: 0x666666,
-      anchor: 0.5,
-    });
+    // renderer.drawText("Corporate Clash", cx, 200, {
+    //   fontSize: 64,
+    //   color: 0x44cc44,
+    //   anchor: 0.5,
+    // });
+    // renderer.drawText("Press SPACE to start", cx, 320, {
+    //   fontSize: 24,
+    //   color: 0xaaaaaa,
+    //   anchor: 0.5,
+    // });
+    // renderer.drawText("Arrow keys or WASD to move", cx, 360, {
+    //   fontSize: 18,
+    //   color: 0x666666,
+    //   anchor: 0.5,
+    // });
   }
 }
