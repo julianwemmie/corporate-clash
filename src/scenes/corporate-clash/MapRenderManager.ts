@@ -1,6 +1,6 @@
-import type { Renderer } from "../../engine/types.js";
-import { CANVAS_WIDTH } from "../../engine/types.js";
-import type { CorporateWorld, Manager } from "./types.js";
+import type { Renderer } from '../../engine/types.js';
+import { CANVAS_WIDTH } from '../../engine/types.js';
+import type { CorporateWorld, Manager } from './types.js';
 
 export class MapRenderManager implements Manager {
   render(world: CorporateWorld, renderer: Renderer): void {
@@ -16,16 +16,20 @@ export class MapRenderManager implements Manager {
 
     if (world.hoveredTile) {
       const { row, col } = world.hoveredTile;
-      renderer.drawRect(col, row, 1, 1, 0xffffff);  // light overlay
+      renderer.drawRect(col, row, 1, 1, 0xffffff); // light overlay
     }
 
-    renderer.drawText("Corporate Clash", cx, 200, { fontSize: 64, color: 0x44cc44, anchor: 0.5 });
-    renderer.drawText("Press SPACE to start", cx, 320, {
+    renderer.drawText('Corporate Clash', cx, 200, {
+      fontSize: 64,
+      color: 0x44cc44,
+      anchor: 0.5,
+    });
+    renderer.drawText('Press SPACE to start', cx, 320, {
       fontSize: 24,
       color: 0xaaaaaa,
       anchor: 0.5,
     });
-    renderer.drawText("Arrow keys or WASD to move", cx, 360, {
+    renderer.drawText('Arrow keys or WASD to move', cx, 360, {
       fontSize: 18,
       color: 0x666666,
       anchor: 0.5,

@@ -1,7 +1,7 @@
-import { Application, Graphics, Text, TextStyle } from "pixi.js";
-import { Renderer } from "./Renderer.js";
-import { Input } from "./Input.js";
-import type { Scene, GameContext } from "./types.js";
+import { Application, Graphics, Text, TextStyle } from 'pixi.js';
+import { Renderer } from './Renderer.js';
+import { Input } from './Input.js';
+import type { Scene, GameContext } from './types.js';
 import {
   GRID_SIZE,
   CELL_SIZE,
@@ -10,7 +10,7 @@ import {
   TICK_RATE_MS,
   TICK_RATE_S,
   MAX_ACCUMULATOR_MS,
-} from "./types.js";
+} from './types.js';
 
 export class Game {
   private app: Application;
@@ -94,12 +94,12 @@ export class Game {
     this.app.stage.addChild(bg);
 
     const title = new Text({
-      text: "Runtime Error",
+      text: 'Runtime Error',
       style: new TextStyle({
         fontSize: 28,
         fill: 0xff4444,
-        fontFamily: "monospace",
-        fontWeight: "bold",
+        fontFamily: 'monospace',
+        fontWeight: 'bold',
       }),
     });
     title.x = 20;
@@ -111,7 +111,7 @@ export class Game {
       style: new TextStyle({
         fontSize: 16,
         fill: 0xff8888,
-        fontFamily: "monospace",
+        fontFamily: 'monospace',
         wordWrap: true,
         wordWrapWidth: CANVAS_WIDTH - 40,
       }),

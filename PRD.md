@@ -32,12 +32,12 @@ That includes:
 
 **Types:**
 
-| Type | Notes |
-|------|-------|
-| Staff | - |
-| Engineer | - |
-| Marketing | - |
-| Office Worker | - |
+| Type          | Notes |
+| ------------- | ----- |
+| Staff         | -     |
+| Engineer      | -     |
+| Marketing     | -     |
+| Office Worker | -     |
 
 > **Optional:** HR can increase morale
 
@@ -46,10 +46,10 @@ That includes:
 - More offices increase max employee capacity
 - Three different levels: One Story, Multi-Level, Skyscraper
 
-| Building | Capacity |
-|----------|----------|
-| Small Office (Single Story) | 10 people |
-| Medium Office (Multi-Story) | 20 people |
+| Building                           | Capacity  |
+| ---------------------------------- | --------- |
+| Small Office (Single Story)        | 10 people |
+| Medium Office (Multi-Story)        | 20 people |
 | Large Office Building (Skyscraper) | 30 people |
 
 ### Initial Game State

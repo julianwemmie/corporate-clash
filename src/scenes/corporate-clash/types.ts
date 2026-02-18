@@ -1,8 +1,8 @@
-import type { Renderer } from "../../engine/types.js";
+import type { Renderer } from '../../engine/types.js';
 
 // --- Game Phase ---
 
-export type GamePhase = "playing" | "gameOver";
+export type GamePhase = 'playing' | 'gameOver';
 
 // --- Grid ---
 
@@ -13,7 +13,7 @@ export interface GridPos {
 
 // --- Buildings ---
 
-export type BuildingType = "smallOffice" | "mediumOffice" | "skyscraper";
+export type BuildingType = 'smallOffice' | 'mediumOffice' | 'skyscraper';
 
 export interface BuildingConfig {
   label: string;
@@ -24,19 +24,19 @@ export interface BuildingConfig {
 
 export const BUILDING_CONFIG: Record<BuildingType, BuildingConfig> = {
   smallOffice: {
-    label: "Small Office",
+    label: 'Small Office',
     cost: 50_000,
     capacity: 10,
     color: 0x4a90d9,
   },
   mediumOffice: {
-    label: "Medium Office",
+    label: 'Medium Office',
     cost: 150_000,
     capacity: 20,
     color: 0x357abd,
   },
   skyscraper: {
-    label: "Skyscraper",
+    label: 'Skyscraper',
     cost: 400_000,
     capacity: 30,
     color: 0x1a5276,
@@ -44,14 +44,14 @@ export const BUILDING_CONFIG: Record<BuildingType, BuildingConfig> = {
 };
 
 export const BUILDING_TYPES: BuildingType[] = [
-  "smallOffice",
-  "mediumOffice",
-  "skyscraper",
+  'smallOffice',
+  'mediumOffice',
+  'skyscraper',
 ];
 
 // --- Employees ---
 
-export type EmployeeType = "staff" | "engineer" | "marketing" | "officeWorker";
+export type EmployeeType = 'staff' | 'engineer' | 'marketing' | 'officeWorker';
 
 export interface EmployeeConfig {
   label: string;
@@ -62,25 +62,25 @@ export interface EmployeeConfig {
 
 export const EMPLOYEE_CONFIG: Record<EmployeeType, EmployeeConfig> = {
   officeWorker: {
-    label: "Office Worker",
+    label: 'Office Worker',
     cost: 5_000,
     profitPerTick: 800,
     color: 0x95a5a6,
   },
   staff: {
-    label: "Staff",
+    label: 'Staff',
     cost: 10_000,
     profitPerTick: 2_000,
     color: 0x27ae60,
   },
   marketing: {
-    label: "Marketing",
+    label: 'Marketing',
     cost: 25_000,
     profitPerTick: 5_000,
     color: 0xe67e22,
   },
   engineer: {
-    label: "Engineer",
+    label: 'Engineer',
     cost: 40_000,
     profitPerTick: 8_000,
     color: 0x8e44ad,
@@ -88,10 +88,10 @@ export const EMPLOYEE_CONFIG: Record<EmployeeType, EmployeeConfig> = {
 };
 
 export const EMPLOYEE_TYPES: EmployeeType[] = [
-  "officeWorker",
-  "staff",
-  "marketing",
-  "engineer",
+  'officeWorker',
+  'staff',
+  'marketing',
+  'engineer',
 ];
 
 // --- World State ---
@@ -112,9 +112,9 @@ export interface Tile {
 }
 
 export type UIMode =
-  | { kind: "none" }
-  | { kind: "buildingPanel"; tile: GridPos }
-  | { kind: "employeePanel"; tile: GridPos };
+  | { kind: 'none' }
+  | { kind: 'buildingPanel'; tile: GridPos }
+  | { kind: 'employeePanel'; tile: GridPos };
 
 export interface CorporateWorld {
   phase: GamePhase;
@@ -142,11 +142,11 @@ export function createWorld(gridSize: number): CorporateWorld {
   }
 
   return {
-    phase: "playing",
+    phase: 'playing',
     funds: STARTING_FUNDS,
     grid,
     selectedTile: null,
-    uiMode: { kind: "none" },
+    uiMode: { kind: 'none' },
     hoveredTile: null,
   };
 }

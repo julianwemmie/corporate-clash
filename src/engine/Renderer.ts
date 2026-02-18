@@ -1,6 +1,6 @@
-import { Application, Container, Graphics, Text, TextStyle } from "pixi.js";
-import type { Renderer as IRenderer } from "./types.js";
-import { CELL_SIZE } from "./types.js";
+import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
+import type { Renderer as IRenderer } from './types.js';
+import { CELL_SIZE } from './types.js';
 
 export class Renderer implements IRenderer {
   private app: Application;
@@ -21,14 +21,14 @@ export class Renderer implements IRenderer {
     gridY: number,
     widthCells: number,
     heightCells: number,
-    color: number
+    color: number,
   ): void {
     const g = new Graphics();
     g.rect(
       gridX * CELL_SIZE,
       gridY * CELL_SIZE,
       widthCells * CELL_SIZE,
-      heightCells * CELL_SIZE
+      heightCells * CELL_SIZE,
     );
     g.fill(color);
     this.drawContainer.addChild(g);
@@ -38,12 +38,12 @@ export class Renderer implements IRenderer {
     text: string,
     pixelX: number,
     pixelY: number,
-    options?: { fontSize?: number; color?: number; anchor?: number }
+    options?: { fontSize?: number; color?: number; anchor?: number },
   ): void {
     const style = new TextStyle({
       fontSize: options?.fontSize ?? 24,
       fill: options?.color ?? 0xffffff,
-      fontFamily: "monospace",
+      fontFamily: 'monospace',
     });
     const t = new Text({ text, style });
     t.anchor.set(options?.anchor ?? 0, 0);

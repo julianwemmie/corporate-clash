@@ -23,16 +23,16 @@ export interface Renderer {
     gridY: number,
     widthCells: number,
     heightCells: number,
-    color: number
+    color: number,
   ): void;
   drawText(
     text: string,
     pixelX: number,
     pixelY: number,
-    options?: { fontSize?: number; color?: number; anchor?: number }
+    options?: { fontSize?: number; color?: number; anchor?: number },
   ): void;
   clear(): void;
-  readonly stage: import("pixi.js").Container;
+  readonly stage: import('pixi.js').Container;
 }
 
 export interface Scene {

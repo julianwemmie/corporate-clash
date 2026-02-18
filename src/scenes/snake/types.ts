@@ -1,9 +1,9 @@
-import type { Renderer } from "../../engine/types.js";
+import type { Renderer } from '../../engine/types.js';
 
 // --- Shared Types ---
 
-export type GameState = "start" | "playing" | "gameOver";
-export type Direction = "up" | "down" | "left" | "right";
+export type GameState = 'start' | 'playing' | 'gameOver';
+export type Direction = 'up' | 'down' | 'left' | 'right';
 
 export interface Point {
   x: number;
@@ -13,21 +13,21 @@ export interface Point {
 // --- Shared Constants ---
 
 export const KEY_DIRECTION: Record<string, Direction> = {
-  ArrowUp: "up",
-  ArrowDown: "down",
-  ArrowLeft: "left",
-  ArrowRight: "right",
-  KeyW: "up",
-  KeyS: "down",
-  KeyA: "left",
-  KeyD: "right",
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+  KeyW: 'up',
+  KeyS: 'down',
+  KeyA: 'left',
+  KeyD: 'right',
 };
 
 export const OPPOSITE: Record<Direction, Direction> = {
-  up: "down",
-  down: "up",
-  left: "right",
-  right: "left",
+  up: 'down',
+  down: 'up',
+  left: 'right',
+  right: 'left',
 };
 
 export const DELTA: Record<Direction, Point> = {
@@ -54,12 +54,12 @@ export interface SnakeWorld {
 // Factory method for creating SnakeWorld objects
 export function createWorld(gridSize: number): SnakeWorld {
   const world: SnakeWorld = {
-    state: "start",
+    state: 'start',
     gridSize,
     player: {
       segments: [],
-      direction: "right",
-      nextDirection: "right",
+      direction: 'right',
+      nextDirection: 'right',
     },
     food: { x: 0, y: 0 },
     score: 0,
@@ -76,8 +76,8 @@ export function resetWorld(world: SnakeWorld): void {
     { x: centerX - 1, y: centerY },
     { x: centerX - 2, y: centerY },
   ];
-  world.player.direction = "right";
-  world.player.nextDirection = "right";
+  world.player.direction = 'right';
+  world.player.nextDirection = 'right';
   world.score = 0;
   spawnFood(world);
 }
