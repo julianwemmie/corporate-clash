@@ -1,12 +1,17 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH, Renderer } from '../../engine/types';
-import { CorporateWorld, Manager } from './types';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, type Renderer } from '../../engine/types.js';
+import type { CorporateWorld, Manager } from './types.js';
 
 export class AlertManager implements Manager {
+  update(world: CorporateWorld): void {
+    if (world.attackActive && world.uiMode.kind !== 'alert') {
+      world.uiMode = { kind: 'alert' };
+    }
+  }
+
   onKeyDown(world: CorporateWorld, key: string): void {
     if (world.uiMode.kind !== 'alert') return;
     if (key === 'Space') {
       world.uiMode = { kind: 'none' };
-      world.attackActive = null;
     }
   }
 

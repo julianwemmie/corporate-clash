@@ -1,3 +1,16 @@
+import devServer from '@hono/vite-dev-server';
 import { defineConfig } from 'vite';
 
-export default defineConfig({});
+export default defineConfig({
+  plugins: [
+    devServer({
+      entry: 'src/server/index.ts',
+      exclude: [
+        /^\/$/,
+        /^\/src\/.*/,
+        /^\/@.*/,
+        /^\/node_modules\/.*/,
+      ],
+    }),
+  ],
+});

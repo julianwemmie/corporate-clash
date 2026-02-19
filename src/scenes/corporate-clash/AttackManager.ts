@@ -35,6 +35,5 @@ export class AttackManager implements Manager {
     }
 
     world.attackActive = { buildingsLost, employeesLost };
-    world.uiMode = { kind: 'alert' };
   }
 }

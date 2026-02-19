@@ -121,15 +121,29 @@ export interface DamageReport {
   buildingsLost: number;
   employeesLost: number;
 }
-export interface CorporateWorld {
+
+// --- Player Actions (client → server) ---
+
+export type GameAction =
+  | { kind: 'build'; row: number; col: number; buildingType: BuildingType }
+  | { kind: 'hire'; row: number; col: number; employeeType: EmployeeType };
+
+// --- Server-authoritative state (broadcast to all clients) ---
+
+export interface GameState {
   phase: GamePhase;
   funds: number;
   grid: Tile[][];
+  attackActive: DamageReport | null;
+  attackTimer: number;
+}
+
+// --- Full client state (GameState + per-player UI) ---
+
+export interface CorporateWorld extends GameState {
   selectedTile: GridPos | null;
   uiMode: UIMode;
   hoveredTile: GridPos | null;
-  attackActive: DamageReport | null;
-  attackTimer: number;
 }
 
 // --- Constants ---

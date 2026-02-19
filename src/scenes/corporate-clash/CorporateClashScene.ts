@@ -12,9 +12,8 @@ import { createWorld } from './types.js';
 import { RightPanelManager } from './RightPanelManager.js';
 import { LeftPanelManager } from './LeftPanelManager.js';
 import { MapManager } from './MapManager.js';
-import { EconomyManager } from './EconomyManager.js';
 import { AlertManager } from './AlertManager.js';
-import { AttackManager } from './AttackManager.js';
+import { NetworkManager } from './NetworkManager.js';
 
 function getManagerOrigin(manager: Manager): { x: number; y: number } {
   if (manager instanceof LeftPanelManager) {
@@ -40,19 +39,25 @@ export class CorporateClashScene implements Scene {
   private world!: CorporateWorld;
   private managers: Manager[] = [];
 
+  private network!: NetworkManager;
+
   init(ctx: GameContext): void {
     this.world = createWorld(ctx.gridSize);
+
+    this.network = new NetworkManager();
+    this.network.connect();
+
     this.managers = [
+      this.network,
       new MapManager(),
-      new AttackManager(),
       new LeftPanelManager(),
       new RightPanelManager(),
-      new EconomyManager(),
       new AlertManager(),
     ];
   }
 
   update(dt: number): void {
+    this.network.update(this.world);
     if (this.world.uiMode.kind === 'alert') return;
     for (const m of this.managers) m.update?.(this.world, dt);
   }

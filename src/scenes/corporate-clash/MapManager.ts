@@ -1,11 +1,10 @@
 import type { Renderer } from '../../engine/types.js';
 import { CELL_SIZE } from '../../engine/types.js';
 import {
-  BUILDING_CONFIG,
   BUILDING_TYPES,
-  EMPLOYEE_CONFIG,
   EMPLOYEE_TYPES,
   type CorporateWorld,
+  type GameAction,
   type GridPos,
   type Manager,
 } from './types.js';
@@ -82,18 +81,11 @@ export class MapManager implements Manager {
     if (world.uiMode.kind !== 'buildingPanel') return;
 
     const index = parseInt(key.replace('Digit', '')) - 1;
-    const type = BUILDING_TYPES[index];
-    if (!type) return;
+    const buildingType = BUILDING_TYPES[index];
+    if (!buildingType) return;
 
     const { row, col } = world.uiMode.tile;
-    const tile = world.grid[row][col];
-    if (tile.building) return;
-
-    const config = BUILDING_CONFIG[type];
-    if (world.funds >= config.cost) {
-      world.funds -= config.cost;
-      tile.building = { type, employees: [] };
-    }
+    this.sendAction({ kind: 'build', row, col, buildingType });
   }
 
   private handleEmployeeKey(world: CorporateWorld, key: string): void {
@@ -105,21 +97,19 @@ export class MapManager implements Manager {
     if (world.uiMode.kind !== 'employeePanel') return;
 
     const index = parseInt(key.replace('Digit', '')) - 1;
-    const type = EMPLOYEE_TYPES[index];
-    if (!type) return;
+    const employeeType = EMPLOYEE_TYPES[index];
+    if (!employeeType) return;
 
     const { row, col } = world.uiMode.tile;
-    const tile = world.grid[row][col];
-    const building = tile.building;
-    if (!building) return;
+    this.sendAction({ kind: 'hire', row, col, employeeType });
+  }
 
-    const config = EMPLOYEE_CONFIG[type];
-    const capacity = BUILDING_CONFIG[building.type].capacity;
-
-    if (world.funds >= config.cost && building.employees.length < capacity) {
-      world.funds -= config.cost;
-      building.employees.push({ type });
-    }
+  private sendAction(action: GameAction): void {
+    fetch('/game/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(action),
+    });
   }
 
   render(world: CorporateWorld, renderer: Renderer): void {
