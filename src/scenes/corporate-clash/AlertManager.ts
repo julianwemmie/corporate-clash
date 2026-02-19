@@ -3,6 +3,7 @@ import { CorporateWorld, Manager } from './types';
 
 export class AlertManager implements Manager {
   render(world: CorporateWorld, renderer: Renderer): void {
+    if (world.uiMode.kind !== 'alert') return;
     renderer.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0xffffff, {
       alpha: 0.3,
     });

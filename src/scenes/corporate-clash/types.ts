@@ -114,7 +114,8 @@ export interface Tile {
 export type UIMode =
   | { kind: 'none' }
   | { kind: 'buildingPanel'; tile: GridPos }
-  | { kind: 'employeePanel'; tile: GridPos };
+  | { kind: 'employeePanel'; tile: GridPos }
+  | { kind: 'alert' };
 
 export interface CorporateWorld {
   phase: GamePhase;

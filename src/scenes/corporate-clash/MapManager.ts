@@ -58,12 +58,15 @@ export class MapManager implements Manager {
   }
 
   onMouseMove(world: CorporateWorld, pixelX: number, pixelY: number): void {
+    if (world.uiMode.kind === 'alert') return;
     const gridPos = this.pixelToGrid(pixelX, pixelY);
     world.hoveredTile = gridPos;
   }
 
   onKeyDown(world: CorporateWorld, key: string): void {
-    if (world.uiMode.kind === 'buildingPanel') {
+    if (world.uiMode.kind === 'alert') {
+      return
+    } else if (world.uiMode.kind === 'buildingPanel') {
       this.handleBuildingKey(world, key);
     } else if (world.uiMode.kind === 'employeePanel') {
       this.handleEmployeeKey(world, key);
