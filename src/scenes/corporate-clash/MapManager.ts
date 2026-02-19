@@ -65,7 +65,7 @@ export class MapManager implements Manager {
 
   onKeyDown(world: CorporateWorld, key: string): void {
     if (world.uiMode.kind === 'alert') {
-      return
+      return;
     } else if (world.uiMode.kind === 'buildingPanel') {
       this.handleBuildingKey(world, key);
     } else if (world.uiMode.kind === 'employeePanel') {
