@@ -1,24 +1,22 @@
 import type { Renderer } from '../../engine/types.js';
 
-// --- Constants ---
-
-export const STARTING_FUNDS = 500_000;
-export const MAP_DEFENSE = 0;
-export const OFFICE_EMPLOYEE_HEALTH = 1;
-
 // --- Game Phase ---
-
 export type GamePhase = 'playing' | 'gameOver';
 
 // --- Grid ---
-
 export interface GridPos {
   row: number;
   col: number;
 }
 
-// --- Buildings ---
+// --- Constants ---
 
+export const STARTING_FUNDS = 500_000;
+export const ATTACK_INTERVAL_TICKS = 200;
+export const MAP_DEFENSE = 0;
+export const OFFICE_EMPLOYEE_HEALTH = 1;
+
+// --- Buildings ---
 export type BuildingType =
   | 'smallOffice'
   | 'mediumOffice'
@@ -200,8 +198,13 @@ export type UIMode =
   | { kind: 'none' }
   | { kind: 'buildingPanel'; tile: GridPos }
   | { kind: 'officeEmployeePanel'; tile: GridPos }
-  | { kind: 'lawfirmEmployeePanel'; tile: GridPos };
+  | { kind: 'lawfirmEmployeePanel'; tile: GridPos }
+  | { kind: 'alert' };
 
+export interface DamageReport {
+  buildingsLost: number;
+  employeesLost: number;
+}
 export interface CorporateWorld {
   phase: GamePhase;
   funds: number;
@@ -210,6 +213,8 @@ export interface CorporateWorld {
   selectedTile: GridPos | null;
   uiMode: UIMode;
   hoveredTile: GridPos | null;
+  attackActive: DamageReport | null;
+  attackTimer: number;
 }
 
 // --- Factory ---
@@ -232,6 +237,8 @@ export function createWorld(gridSize: number): CorporateWorld {
     selectedTile: null,
     uiMode: { kind: 'none' },
     hoveredTile: null,
+    attackActive: null,
+    attackTimer: ATTACK_INTERVAL_TICKS,
   };
 }
 

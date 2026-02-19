@@ -1,6 +1,10 @@
 import type { Renderer } from '../../engine/types.js';
 import type { CorporateWorld, Manager } from './types.js';
-import { CANVAS_HEIGHT, LEFT_PANEL_WIDTH } from '../../engine/types.js';
+import {
+  CANVAS_HEIGHT,
+  LEFT_PANEL_WIDTH,
+  TICK_RATE_S,
+} from '../../engine/types.js';
 
 export class LeftPanelManager implements Manager {
   display(world: CorporateWorld) {
@@ -16,11 +20,14 @@ export class LeftPanelManager implements Manager {
       }
     }
 
+    const secondsLeft = Math.ceil(world.attackTimer * TICK_RATE_S);
+
     return {
       funds: world.funds,
       mapDefense: world.mapDefense,
       buildings,
       employees,
+      secondsLeft,
     };
   }
 
@@ -28,8 +35,8 @@ export class LeftPanelManager implements Manager {
     if (world.phase === 'playing') {
       renderer.drawRect(0, 0, LEFT_PANEL_WIDTH, CANVAS_HEIGHT, 0x000000);
 
-      const { funds, mapDefense, buildings, employees } = this.display(world);
-
+      const { funds, mapDefense, buildings, employees, secondsLeft } =
+        this.display(world);
       renderer.drawText(`$${funds.toLocaleString()}`, 10, 10, {
         fontSize: 20,
         color: 0x2ecc71,
@@ -44,6 +51,10 @@ export class LeftPanelManager implements Manager {
         color: 0xcccccc,
       });
       renderer.drawText(`Employees: ${employees}`, 10, 106, {
+        fontSize: 14,
+        color: 0xcccccc,
+      });
+      renderer.drawText(`Next attack: ${secondsLeft}`, 10, CANVAS_HEIGHT - 24, {
         fontSize: 14,
         color: 0xcccccc,
       });

@@ -18,8 +18,15 @@ export function createOffsetRenderer(
     get stage() {
       return inner.stage;
     },
-    drawRect(pixelX, pixelY, width, height, color) {
-      inner.drawRect(pixelX + offsetX, pixelY + offsetY, width, height, color);
+    drawRect(pixelX, pixelY, width, height, color, options) {
+      inner.drawRect(
+        pixelX + offsetX,
+        pixelY + offsetY,
+        width,
+        height,
+        color,
+        options,
+      );
     },
     drawText(text, pixelX, pixelY, options) {
       inner.drawText(text, pixelX + offsetX, pixelY + offsetY, options);
@@ -53,10 +60,11 @@ export class Renderer implements IRenderer {
     width: number,
     height: number,
     color: number,
+    options?: { alpha?: number },
   ): void {
     const g = new Graphics();
     g.rect(pixelX, pixelY, width, height);
-    g.fill(color);
+    g.fill({ color, alpha: options?.alpha ?? 1 });
     this.drawContainer.addChild(g);
   }
 
