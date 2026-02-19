@@ -19,7 +19,14 @@ export function createOffsetRenderer(
       return inner.stage;
     },
     drawRect(pixelX, pixelY, width, height, color, options) {
-      inner.drawRect(pixelX + offsetX, pixelY + offsetY, width, height, color, options);
+      inner.drawRect(
+        pixelX + offsetX,
+        pixelY + offsetY,
+        width,
+        height,
+        color,
+        options,
+      );
     },
     drawText(text, pixelX, pixelY, options) {
       inner.drawText(text, pixelX + offsetX, pixelY + offsetY, options);
