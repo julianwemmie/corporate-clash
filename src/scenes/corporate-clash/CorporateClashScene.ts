@@ -16,7 +16,6 @@ import { EconomyManager } from './EconomyManager.js';
 import { AlertManager } from './AlertManager.js';
 import { AttackManager } from './AttackManager.js';
 
-
 function getManagerOrigin(manager: Manager): { x: number; y: number } {
   if (manager instanceof LeftPanelManager) {
     return { x: 0, y: 0 };
@@ -54,6 +53,7 @@ export class CorporateClashScene implements Scene {
   }
 
   update(dt: number): void {
+    if (this.world.uiMode.kind === 'alert') return;
     for (const m of this.managers) m.update?.(this.world, dt);
   }
 

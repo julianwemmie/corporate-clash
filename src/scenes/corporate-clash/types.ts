@@ -135,7 +135,7 @@ export interface CorporateWorld {
 // --- Constants ---
 
 export const STARTING_FUNDS = 500_000;
-export const ATTACK_INTERVAL_TICKS = 500;
+export const ATTACK_INTERVAL_TICKS = 200;
 
 // --- Factory ---
 

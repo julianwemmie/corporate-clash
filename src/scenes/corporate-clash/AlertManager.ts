@@ -2,6 +2,14 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, Renderer } from '../../engine/types';
 import { CorporateWorld, Manager } from './types';
 
 export class AlertManager implements Manager {
+  onKeyDown(world: CorporateWorld, key: string): void {
+    if (world.uiMode.kind !== 'alert') return;
+    if (key === 'Space') {
+      world.uiMode = { kind: 'none' };
+      world.attackActive = null;
+    }
+  }
+
   render(world: CorporateWorld, renderer: Renderer): void {
     if (world.uiMode.kind !== 'alert') return;
     renderer.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0xffffff, {
@@ -26,7 +34,7 @@ export class AlertManager implements Manager {
       anchor: 0.5,
     });
 
-    const alertMessage = "You're being attacked by a rival company!";
+    const alertMessage = `You have been attacked by a rival company! Damage Report: Employees Lost ${world.attackActive?.employeesLost} Buildings Lost ${world.attackActive?.buildingsLost}`;
     renderer.drawText(alertMessage, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10, {
       fontSize: 14,
       color: 0xffffff,
