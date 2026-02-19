@@ -176,6 +176,7 @@ export class MapManager implements Manager {
         CELL_SIZE,
         CELL_SIZE,
         0xffffff,
+        { alpha: 0.3 },
       );
     }
   }

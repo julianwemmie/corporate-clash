@@ -29,6 +29,7 @@ export interface Renderer {
     width: number,
     height: number,
     color: number,
+    options?: { alpha?: number },
   ): void;
   drawText(
     text: string,

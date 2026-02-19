@@ -13,6 +13,7 @@ import { RightPanelManager } from './RightPanelManager.js';
 import { LeftPanelManager } from './LeftPanelManager.js';
 import { MapManager } from './MapManager.js';
 import { EconomyManager } from './EconomyManager.js';
+import { AlertManager } from './AlertManager.js';
 
 function getManagerOrigin(manager: Manager): { x: number; y: number } {
   if (manager instanceof LeftPanelManager) {
@@ -45,6 +46,7 @@ export class CorporateClashScene implements Scene {
       new LeftPanelManager(),
       new RightPanelManager(),
       new EconomyManager(),
+      new AlertManager(),
     ];
   }
 
