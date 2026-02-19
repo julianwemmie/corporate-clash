@@ -3,8 +3,10 @@ import { CANVAS_HEIGHT, RIGHT_PANEL_WIDTH } from '../../engine/types.js';
 import {
   BUILDING_CONFIG,
   BUILDING_TYPES,
-  EMPLOYEE_CONFIG,
-  EMPLOYEE_TYPES,
+  OFFICE_EMPLOYEE_CONFIG,
+  OFFICE_EMPLOYEE_TYPES,
+  LAWFIRM_EMPLOYEE_CONFIG,
+  LAWFIRM_EMPLOYEE_TYPES,
   type CorporateWorld,
   type Manager,
 } from './types.js';
@@ -24,7 +26,10 @@ export class RightPanelManager implements Manager {
 
     if (world.uiMode.kind === 'buildingPanel') {
       this.renderBuildingPanel(world, renderer);
-    } else if (world.uiMode.kind === 'employeePanel') {
+    } else if (
+      world.uiMode.kind === 'officeEmployeePanel' ||
+      world.uiMode.kind === 'lawfirmEmployeePanel'
+    ) {
       this.renderEmployeePanel(world, renderer);
     }
   }
@@ -65,11 +70,17 @@ export class RightPanelManager implements Manager {
   }
 
   private renderEmployeePanel(world: CorporateWorld, renderer: Renderer): void {
-    if (world.uiMode.kind !== 'employeePanel') return;
+    if (
+      world.uiMode.kind !== 'officeEmployeePanel' &&
+      world.uiMode.kind !== 'lawfirmEmployeePanel'
+    )
+      return;
     const { row, col } = world.uiMode.tile;
     const building = world.grid[row][col].building;
+
     if (!building) return;
 
+    const { type: buildingType } = building;
     const capacity = BUILDING_CONFIG[building.type].capacity;
     const current = building.employees.length;
     let y = 10;
@@ -86,25 +97,49 @@ export class RightPanelManager implements Manager {
     });
     y += LINE_HEIGHT + 6;
 
-    EMPLOYEE_TYPES.forEach((type, i) => {
-      const config = EMPLOYEE_CONFIG[type];
-      const canAfford = world.funds >= config.cost;
-      const hasRoom = current < capacity;
-      const color = canAfford && hasRoom ? BRIGHT : DIM;
+    // Handle Office by Categories rather than hard-coded by office type or lawfirm type. (Lawfirm vs Office instead of "lawfirm" vs "smallOffice" vs "mediumOffice")
 
-      renderer.drawText(`[${i + 1}] ${config.label}`, PANEL_X, y, {
-        fontSize: OPTION_SIZE,
-        color,
+    if (buildingType === 'lawfirm') {
+      LAWFIRM_EMPLOYEE_TYPES.forEach((type, i) => {
+        const config = LAWFIRM_EMPLOYEE_CONFIG[type];
+        const canAfford = world.funds >= config.cost;
+        const hasRoom = current < capacity;
+        const color = canAfford && hasRoom ? BRIGHT : DIM;
+
+        renderer.drawText(`[${i + 1}] ${config.label}`, PANEL_X, y, {
+          fontSize: OPTION_SIZE,
+          color,
+        });
+        y += LINE_HEIGHT - 4;
+        renderer.drawText(
+          `    $${config.cost.toLocaleString()}  +${config.profitPerTick}/t`,
+          PANEL_X,
+          y,
+          { fontSize: OPTION_SIZE - 2, color: 0xaaaaaa },
+        );
+        y += LINE_HEIGHT;
       });
-      y += LINE_HEIGHT - 4;
-      renderer.drawText(
-        `    $${config.cost.toLocaleString()}  +${config.profitPerTick}/t`,
-        PANEL_X,
-        y,
-        { fontSize: OPTION_SIZE - 2, color: 0xaaaaaa },
-      );
-      y += LINE_HEIGHT;
-    });
+    } else if (buildingType) {
+      OFFICE_EMPLOYEE_TYPES.forEach((type, i) => {
+        const config = OFFICE_EMPLOYEE_CONFIG[type];
+        const canAfford = world.funds >= config.cost;
+        const hasRoom = current < capacity;
+        const color = canAfford && hasRoom ? BRIGHT : DIM;
+
+        renderer.drawText(`[${i + 1}] ${config.label}`, PANEL_X, y, {
+          fontSize: OPTION_SIZE,
+          color,
+        });
+        y += LINE_HEIGHT - 4;
+        renderer.drawText(
+          `    $${config.cost.toLocaleString()}  +${config.profitPerTick}/t`,
+          PANEL_X,
+          y,
+          { fontSize: OPTION_SIZE - 2, color: 0xaaaaaa },
+        );
+        y += LINE_HEIGHT;
+      });
+    }
 
     y += 4;
     renderer.drawText('[ESC] Close', PANEL_X, y, {
