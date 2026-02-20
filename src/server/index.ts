@@ -30,9 +30,25 @@ const clients = new Set<SSEClient>();
 
 let tickId = 0;
 
-function toGameState(w: CorporateWorld): GameState {
-  const { phase, funds, mapDefense, grid, attackActive, attackTimer, alertInfo } = w;
-  return { phase, funds, mapDefense, grid, attackActive, attackTimer, alertInfo };
+function convertToGameState(gameWorld: CorporateWorld): GameState {
+  const {
+    phase,
+    funds,
+    mapDefense,
+    grid,
+    attackActive,
+    attackTimer,
+    alertInfo,
+  } = gameWorld;
+  return {
+    phase,
+    funds,
+    mapDefense,
+    grid,
+    attackActive,
+    attackTimer,
+    alertInfo,
+  };
 }
 
 setInterval(() => {
@@ -42,14 +58,14 @@ setInterval(() => {
   attackManager.update(world);
   tickId++;
 
-  const data = JSON.stringify(toGameState(world));
+  const data = JSON.stringify(convertToGameState(world));
   for (const client of clients) {
     client.resolve({ data, id: tickId });
   }
 }, TICK_RATE_MS);
 
 app.get('/api', (c) => {
-  return c.json(toGameState(world));
+  return c.json(convertToGameState(world));
 });
 
 app.post('/game/action', async (c) => {

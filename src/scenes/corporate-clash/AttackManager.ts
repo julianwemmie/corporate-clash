@@ -2,13 +2,12 @@ import {
   ATTACK_INTERVAL_TICKS,
   BUILDING_CONFIG,
   EMPLOYEE_CONFIG,
+  ATTACK_POWER_MIN,
+  ATTACK_POWER_MAX,
   type CorporateWorld,
   type Manager,
   type Tile,
 } from './types.js';
-
-const ATTACK_POWER_MIN = 100;
-const ATTACK_POWER_MAX = 500;
 
 function findTiles(
   world: CorporateWorld,
@@ -25,6 +24,8 @@ function findTiles(
 
 export class AttackManager implements Manager {
   update(world: CorporateWorld): void {
+    if (world.phase === 'gameOver') return;
+
     world.attackTimer -= 1;
 
     if (world.attackTimer > 0) return;
@@ -36,7 +37,8 @@ export class AttackManager implements Manager {
         ATTACK_POWER_MIN,
     );
 
-    const lawfirmTile = findTiles(world, (tile) => tile.building?.type === 'lawfirm')[0] ?? null;
+    const lawfirmTile =
+      findTiles(world, (tile) => tile.building?.type === 'lawfirm')[0] ?? null;
 
     if (lawfirmTile) {
       const message = this.attackLawfirm(world, lawfirmTile, attackPower);
@@ -50,7 +52,10 @@ export class AttackManager implements Manager {
     world.uiMode = { kind: 'alert' };
   }
 
-  private attackRandomBuilding(world: CorporateWorld, attackPower: number): string {
+  private attackRandomBuilding(
+    world: CorporateWorld,
+    attackPower: number,
+  ): string {
     const effectiveDamage = Math.max(0, attackPower - world.mapDefense);
     world.mapDefense = Math.max(0, world.mapDefense - attackPower);
 
@@ -65,9 +70,7 @@ export class AttackManager implements Manager {
     }
 
     const tile =
-      tilesWithBuildings[
-        Math.floor(Math.random() * tilesWithBuildings.length)
-      ];
+      tilesWithBuildings[Math.floor(Math.random() * tilesWithBuildings.length)];
     const targetLabel = BUILDING_CONFIG[tile.building!.type].label;
     tile.building!.health -= effectiveDamage;
 
@@ -78,11 +81,16 @@ export class AttackManager implements Manager {
       tile.building = null;
       buildingsLost++;
     }
+    world.attackActive = { buildingsLost, employeesLost };
 
     return `Attack power: ${attackPower}. ${targetLabel} was attacked! Damage Report: Employees Lost ${employeesLost}, Buildings Lost ${buildingsLost}. Defense remaining: ${world.mapDefense}`;
   }
 
-  private attackLawfirm(world: CorporateWorld, lawfirmTile: Tile, attackPower: number): string {
+  private attackLawfirm(
+    world: CorporateWorld,
+    lawfirmTile: Tile,
+    attackPower: number,
+  ): string {
     lawfirmTile.building!.health -= attackPower;
 
     if (lawfirmTile.building!.health <= 0) {
@@ -93,10 +101,12 @@ export class AttackManager implements Manager {
       world.mapDefense = Math.max(0, world.mapDefense - totalDefense);
       const employeesLost = lawfirmTile.building!.employees.length;
       lawfirmTile.building = null;
+      world.attackActive = { buildingsLost: 1, employeesLost };
 
       return `Attack power: ${attackPower}. Lawfirm was destroyed! Defense reduced by ${totalDefense}. Employees Lost ${employeesLost}. Defense remaining: ${world.mapDefense}`;
     }
 
+    world.attackActive = { buildingsLost: 0, employeesLost: 0 };
     return `Attack power: ${attackPower}. Lawfirm absorbed the attack! Lawfirm health: ${lawfirmTile.building!.health}/${BUILDING_CONFIG['lawfirm'].maxHealth}. Defense remaining: ${world.mapDefense}`;
   }
 }
