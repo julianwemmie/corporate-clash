@@ -24,23 +24,51 @@ const MAP_AREA_H = GRID_SIZE * CELL_SIZE;
 const ISO_ORIGIN_X = MAP_AREA_W / 2;
 const ISO_ORIGIN_Y = (MAP_AREA_H - GRID_SIZE * ISO_TILE_H) / 2 + HALF_H;
 
+const MAX = GRID_SIZE - 1;
+const DIRECTION_LABELS: Record<number, string> = {
+  0: 'SE',
+  1: 'SW',
+  2: 'NW',
+  3: 'NE',
+};
+
 export class MapManager implements Manager {
   private buildingTextures = new Map<string, Texture>();
+  private rotation: 0 | 1 | 2 | 3 = 0;
+
+  private rotateCoords(row: number, col: number): { row: number; col: number } {
+    switch (this.rotation) {
+      case 0: return { row, col };
+      case 1: return { row: col, col: MAX - row };
+      case 2: return { row: MAX - row, col: MAX - col };
+      case 3: return { row: MAX - col, col: row };
+    }
+  }
+
+  private unrotateCoords(row: number, col: number): { row: number; col: number } {
+    switch (this.rotation) {
+      case 0: return { row, col };
+      case 1: return { row: MAX - col, col: row };
+      case 2: return { row: MAX - row, col: MAX - col };
+      case 3: return { row: col, col: MAX - row };
+    }
+  }
 
   private gridToIso(row: number, col: number): { x: number; y: number } {
+    const r = this.rotateCoords(row, col);
     return {
-      x: (col - row) * HALF_W + ISO_ORIGIN_X,
-      y: (col + row) * HALF_H + ISO_ORIGIN_Y,
+      x: (r.col - r.row) * HALF_W + ISO_ORIGIN_X,
+      y: (r.col + r.row) * HALF_H + ISO_ORIGIN_Y,
     };
   }
 
   private pixelToGrid(pixelX: number, pixelY: number): GridPos {
     const relX = pixelX - ISO_ORIGIN_X;
     const relY = pixelY - ISO_ORIGIN_Y;
-    return {
-      col: Math.round((relX / HALF_W + relY / HALF_H) / 2),
-      row: Math.round((relY / HALF_H - relX / HALF_W) / 2),
-    };
+    const rotCol = Math.round((relX / HALF_W + relY / HALF_H) / 2);
+    const rotRow = Math.round((relY / HALF_H - relX / HALF_W) / 2);
+    const orig = this.unrotateCoords(rotRow, rotCol);
+    return { row: orig.row, col: orig.col };
   }
 
   private isInBounds(world: CorporateWorld, gridPos: GridPos): boolean {
@@ -90,6 +118,11 @@ export class MapManager implements Manager {
   }
 
   onKeyDown(world: CorporateWorld, key: string): void {
+    if (key === 'KeyR') {
+      this.rotation = ((this.rotation + 1) % 4) as 0 | 1 | 2 | 3;
+      return;
+    }
+
     if (world.uiMode.kind === 'alert') {
       return;
     } else if (world.uiMode.kind === 'buildingPanel') {
@@ -184,7 +217,7 @@ export class MapManager implements Manager {
       });
     }
 
-    // Pass 1: draw all ground tiles
+    // ground tiles
     for (let row = 0; row < world.grid.length; row++) {
       for (let col = 0; col < world.grid[row].length; col++) {
         const { x, y } = this.gridToIso(row, col);
@@ -198,42 +231,52 @@ export class MapManager implements Manager {
       }
     }
 
-    // Pass 2: draw buildings back-to-front, fading non-hovered buildings
+    // buildings back-to-front (sorted by rotated depth)
     const hovered = world.hoveredTile;
     const isHovering = hovered && this.isInBounds(world, hovered);
-
-    for (let depth = 0; depth < world.grid.length * 2 - 1; depth++) {
-      for (let row = 0; row < world.grid.length; row++) {
-        const col = depth - row;
-        if (col < 0 || col >= world.grid[0].length) continue;
-
-        const tile = world.grid[row][col];
-        if (!tile.building) continue;
-
-        const texture = this.buildingTextures.get(tile.building.type);
-        if (!texture) continue;
-
-        const isThisHovered =
-          isHovering && hovered.row === row && hovered.col === col;
-
-        const { x, y } = this.gridToIso(row, col);
-        const scale = ISO_TILE_W / texture.width;
-        const spriteW = ISO_TILE_W;
-        const spriteH = texture.height * scale;
-        renderer.drawSprite(texture, x - spriteW / 2, y + HALF_H - spriteH, {
-          width: spriteW,
-          height: spriteH,
-          alpha: isHovering && !isThisHovered ? 0.3 : 1,
-        });
+    const buildings: { row: number; col: number; depth: number }[] = [];
+    for (let row = 0; row < world.grid.length; row++) {
+      for (let col = 0; col < world.grid[row].length; col++) {
+        if (!world.grid[row][col].building) continue;
+        const r = this.rotateCoords(row, col);
+        buildings.push({ row, col, depth: r.row + r.col });
       }
     }
+    buildings.sort((a, b) => a.depth - b.depth);
 
-    if (world.hoveredTile) {
+    for (const { row, col } of buildings) {
+      const tile = world.grid[row][col];
+      const texture = this.buildingTextures.get(tile.building!.type);
+      if (!texture) continue;
+
+      const isThisHovered =
+        isHovering && hovered.row === row && hovered.col === col;
+
+      const { x, y } = this.gridToIso(row, col);
+      const scale = ISO_TILE_W / texture.width;
+      const spriteW = ISO_TILE_W;
+      const spriteH = texture.height * scale;
+      renderer.drawSprite(texture, x - spriteW / 2, y + HALF_H - spriteH, {
+        width: spriteW,
+        height: spriteH,
+        alpha: isHovering && !isThisHovered ? 0.3 : 1,
+      });
+    }
+
+    if (world.hoveredTile && this.isInBounds(world, world.hoveredTile)) {
       const { row, col } = world.hoveredTile;
       const { x, y } = this.gridToIso(row, col);
       renderer.drawDiamond(x, y, ISO_TILE_W, ISO_TILE_H, 0xffffff, {
         alpha: 0.3,
       });
     }
+
+    // Rotation hint in top-right of map area
+    renderer.drawText(
+      `[R] Rotate | Facing ${DIRECTION_LABELS[this.rotation]}`,
+      MAP_AREA_W - 10,
+      10,
+      { fontSize: 12, color: 0x888888, anchor: 1 },
+    );
   }
 }
