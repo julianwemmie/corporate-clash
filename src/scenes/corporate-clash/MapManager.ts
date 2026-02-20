@@ -104,24 +104,38 @@ export class MapManager implements Manager {
   onLeftClick(world: CorporateWorld, pixelX: number, pixelY: number): void {
     const gridPos = this.pixelToGrid(pixelX, pixelY);
     if (!this.isInBounds(world, gridPos)) {
+      world.selectedTile = null;
       world.uiMode = { kind: 'none' };
       return;
     }
 
-    if (
-      world.uiMode.kind === 'buildingPanel' ||
-      world.uiMode.kind === 'officeEmployeePanel' ||
-      world.uiMode.kind === 'lawfirmEmployeePanel'
-    ) {
-      const selected = world.uiMode.tile;
-      if (selected.row === gridPos.row && selected.col === gridPos.col) {
-        world.uiMode = { kind: 'none' };
-        return;
-      }
+    const sel = world.selectedTile;
+    if (sel && sel.row === gridPos.row && sel.col === gridPos.col) {
+      world.selectedTile = null;
+      return;
+    }
+
+    world.selectedTile = gridPos;
+    this.syncPanelToTile(world, gridPos);
+  }
+
+  onMouseMove(world: CorporateWorld, pixelX: number, pixelY: number): void {
+    if (world.uiMode.kind === 'alert' || world.uiMode.kind === 'attackPanel')
+      return;
+    const gridPos = this.pixelToGrid(pixelX, pixelY);
+    world.hoveredTile = gridPos;
+    if (!world.selectedTile) {
+      this.syncPanelToTile(world, gridPos);
+    }
+  }
+
+  private syncPanelToTile(world: CorporateWorld, gridPos: GridPos): void {
+    if (!this.isInBounds(world, gridPos)) {
+      world.uiMode = { kind: 'none' };
+      return;
     }
 
     const tile = world.grid[gridPos.row][gridPos.col];
-
     if (!tile.building) {
       world.uiMode = { kind: 'buildingPanel', tile: gridPos };
     } else if (tile.building.type === 'lawfirm') {
@@ -129,12 +143,6 @@ export class MapManager implements Manager {
     } else {
       world.uiMode = { kind: 'officeEmployeePanel', tile: gridPos };
     }
-  }
-
-  onMouseMove(world: CorporateWorld, pixelX: number, pixelY: number): void {
-    if (world.uiMode.kind === 'alert') return;
-    const gridPos = this.pixelToGrid(pixelX, pixelY);
-    world.hoveredTile = gridPos;
   }
 
   onKeyDown(world: CorporateWorld, key: string): void {
@@ -152,10 +160,15 @@ export class MapManager implements Manager {
     } else if (world.uiMode.kind === 'lawfirmEmployeePanel') {
       this.handleEmployeeKey(world, 'lawfirm', key);
     }
+
+    if (world.hoveredTile && !world.selectedTile) {
+      this.syncPanelToTile(world, world.hoveredTile);
+    }
   }
 
   private handleBuildingKey(world: CorporateWorld, key: string): void {
     if (key === 'Escape') {
+      world.selectedTile = null;
       world.uiMode = { kind: 'none' };
       return;
     }
@@ -174,12 +187,6 @@ export class MapManager implements Manager {
       col,
       buildingType,
     });
-
-    const panel =
-      buildingType === 'lawfirm'
-        ? 'lawfirmEmployeePanel'
-        : 'officeEmployeePanel';
-    world.uiMode = { kind: panel, tile: { row, col } };
   }
 
   private handleEmployeeKey(
@@ -188,6 +195,7 @@ export class MapManager implements Manager {
     key: string,
   ): void {
     if (key === 'Escape') {
+      world.selectedTile = null;
       world.uiMode = { kind: 'none' };
       return;
     }

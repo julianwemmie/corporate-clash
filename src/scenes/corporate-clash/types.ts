@@ -281,6 +281,7 @@ export interface CorporateWorld extends GameState {
   playerId: string;
   uiMode: UIMode;
   hoveredTile: GridPos | null;
+  selectedTile: GridPos | null;
 }
 
 // --- Factory ---
@@ -305,6 +306,7 @@ export function createWorld(
     grid,
     playerId,
     uiMode: { kind: 'none' },
+    selectedTile: null,
     hoveredTile: null,
     attackActive: null,
     attackTimer: ATTACK_INTERVAL_TICKS,
