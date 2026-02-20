@@ -31,12 +31,13 @@ const clients = new Set<SSEClient>();
 let tickId = 0;
 
 function toGameState(w: CorporateWorld): GameState {
-  const { phase, funds, mapDefense, grid, attackActive, attackTimer } = w;
-  return { phase, funds, mapDefense, grid, attackActive, attackTimer };
+  const { phase, funds, mapDefense, grid, attackActive, attackTimer, alertInfo } = w;
+  return { phase, funds, mapDefense, grid, attackActive, attackTimer, alertInfo };
 }
 
 setInterval(() => {
   world.attackActive = null;
+  world.alertInfo = null;
   economyManager.update(world);
   attackManager.update(world);
   tickId++;
@@ -78,7 +79,11 @@ app.post('/game/action', async (c) => {
       return c.json({ error: 'insufficient funds' }, 400);
     }
     world.funds -= config.cost;
-    tile.building = { type: action.buildingType, employees: [], health: config.maxHealth };
+    tile.building = {
+      type: action.buildingType,
+      employees: [],
+      health: config.maxHealth,
+    };
     return c.json({ ok: true });
   }
 

@@ -28,6 +28,11 @@ export class NetworkManager implements Manager {
     world.attackActive = this.pending.attackActive;
     world.attackTimer = this.pending.attackTimer;
 
+    if (this.pending.alertInfo) {
+      world.alertInfo = this.pending.alertInfo;
+      world.uiMode = { kind: 'alert' };
+    }
+
     if (wasPlaying && world.phase === 'gameOver') {
       world.uiMode = { kind: 'alert' };
       world.alertInfo = {

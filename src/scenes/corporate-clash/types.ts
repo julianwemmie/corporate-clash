@@ -240,6 +240,7 @@ export interface GameState {
   grid: Tile[][];
   attackActive: DamageReport | null;
   attackTimer: number;
+  alertInfo: AlertInfo | null;
 }
 
 // --- Full client state (GameState + per-player UI) ---
@@ -248,7 +249,6 @@ export interface CorporateWorld extends GameState {
   selectedTile: GridPos | null;
   uiMode: UIMode;
   hoveredTile: GridPos | null;
-  alertInfo: AlertInfo | null;
 }
 
 export interface AlertInfo {
