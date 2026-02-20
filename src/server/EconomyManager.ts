@@ -1,4 +1,8 @@
-import type { CorporateWorld, EmployeeConfig, Manager } from '../scenes/corporate-clash/types.js';
+import type {
+  CorporateWorld,
+  EmployeeConfig,
+  Manager,
+} from '../scenes/corporate-clash/types.js';
 import {
   getEmployeeCategory,
   OFFICE_EMPLOYEE_CONFIG,

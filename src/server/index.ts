@@ -7,6 +7,7 @@ import {
   EMPLOYEE_CONFIG,
   EMPLOYEE_TYPES,
   createWorld,
+  getEmployeeCategory,
   type CorporateWorld,
   type GameAction,
   type GameState,
@@ -98,41 +99,79 @@ setInterval(() => {
 
       // Only raid if player has no immunity and has employees
       if (player.defenseBuffer <= 0) {
-        let totalEmployees = 0;
+        let totalHeadcount = 0;
         for (const row of player.world.grid) {
           for (const tile of row) {
-            if (tile.building) totalEmployees += tile.building.employees.length;
+            if (tile.building) totalHeadcount += tile.building.employees.length;
           }
         }
 
-        if (totalEmployees > 0) {
-          let toKill = Math.ceil(totalEmployees * NPC_DAMAGE_PERCENT);
-          const employeesLost = toKill;
-          let buildingsLost = 0;
-
-          for (const row of player.world.grid) {
-            for (const tile of row) {
-              if (!tile.building || toKill <= 0) continue;
-              const removable = Math.min(
-                toKill,
-                tile.building.employees.length,
-              );
-              tile.building.employees.splice(0, removable);
-              toKill -= removable;
-              if (tile.building.employees.length === 0) {
-                tile.building = null;
-                buildingsLost++;
-              }
-            }
+        if (totalHeadcount > 0) {
+          // Roll dice: each headcount gets a 30% chance to generate a kill
+          let killRolls = 0;
+          for (let i = 0; i < totalHeadcount; i++) {
+            if (Math.random() < NPC_DAMAGE_PERCENT) killRolls++;
           }
 
-          player.world.attackActive = {
-            buildingsLost,
-            employeesLost,
-            attackerName: 'Corporate Raiders',
-            defender: null,
-            isAttacker: false,
-          };
+          if (killRolls > 0) {
+            let lawyersLost = 0;
+            let employeesLost = 0;
+            let buildingsLost = 0;
+
+            // Pass 1: lawyers absorb kills first (1 lawyer = 3 kills)
+            for (const row of player.world.grid) {
+              for (const tile of row) {
+                if (!tile.building || killRolls <= 0) continue;
+                tile.building.employees = tile.building.employees.filter(
+                  (e) => {
+                    if (killRolls <= 0) return true;
+                    if (getEmployeeCategory(e.type) === 'lawfirm') {
+                      killRolls -= EMPLOYEE_CONFIG[e.type].health;
+                      lawyersLost++;
+                      player.world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+                      return false;
+                    }
+                    return true;
+                  },
+                );
+                if (tile.building.employees.length === 0) {
+                  tile.building = null;
+                  buildingsLost++;
+                }
+              }
+            }
+
+            // Pass 2: remaining kills hit regular employees
+            for (const row of player.world.grid) {
+              for (const tile of row) {
+                if (!tile.building || killRolls <= 0) continue;
+                tile.building.employees = tile.building.employees.filter(
+                  (e) => {
+                    if (killRolls <= 0) return true;
+                    if (getEmployeeCategory(e.type) === 'office') {
+                      killRolls--;
+                      employeesLost++;
+                      player.world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+                      return false;
+                    }
+                    return true;
+                  },
+                );
+                if (tile.building.employees.length === 0) {
+                  tile.building = null;
+                  buildingsLost++;
+                }
+              }
+            }
+
+            player.world.attackActive = {
+              buildingsLost,
+              employeesLost: employeesLost + lawyersLost,
+              attackerName: 'Corporate Raiders',
+              defender: null,
+              isAttacker: false,
+            };
+          }
 
           player.defenseBuffer = DEFENSE_BUFFER_TICKS;
         }
@@ -253,10 +292,27 @@ app.post('/game/action', async (c) => {
       totalAttackers += count;
     }
 
-    // Remove troops from attacker's buildings
+    // Remove troops from attacker's buildings (office workers first, preserve lawyers)
     for (const troop of action.troops) {
       const tile = player.world.grid[troop.row][troop.col];
-      tile.building!.employees.splice(0, troop.count);
+      let toRemove = troop.count;
+      // Pass 1: send office workers first
+      tile.building!.employees = tile.building!.employees.filter((e) => {
+        if (toRemove <= 0) return true;
+        if (getEmployeeCategory(e.type) === 'office') {
+          toRemove--;
+          world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+          return false;
+        }
+        return true;
+      });
+      // Pass 2: send lawyers if more troops needed
+      tile.building!.employees = tile.building!.employees.filter((e) => {
+        if (toRemove <= 0) return true;
+        toRemove--;
+        world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+        return false;
+      });
       if (tile.building!.employees.length === 0) {
         tile.building = null;
       }
@@ -283,26 +339,55 @@ app.post('/game/action', async (c) => {
       }
     }
 
-    // Apply defender losses randomly across buildings
+    // Apply defender losses: lawyers absorb first, then regular employees
     let defenderLosses = totalDefenders - defendersLeft;
     let defenderBuildingsLost = 0;
-    const defenderEmployeesLost = defenderLosses;
+    let defenderLawyersLost = 0;
+    let defenderRegularLost = 0;
 
+    // Pass 1: lawyers absorb losses at their health rate
     for (const row of target.world.grid) {
       for (const tile of row) {
         if (!tile.building || defenderLosses <= 0) continue;
-        const removable = Math.min(
-          defenderLosses,
-          tile.building.employees.length,
-        );
-        tile.building.employees.splice(0, removable);
-        defenderLosses -= removable;
+        tile.building.employees = tile.building.employees.filter((e) => {
+          if (defenderLosses <= 0) return true;
+          if (getEmployeeCategory(e.type) === 'lawfirm') {
+            defenderLosses -= EMPLOYEE_CONFIG[e.type].health;
+            defenderLawyersLost++;
+            target.world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+            return false;
+          }
+          return true;
+        });
         if (tile.building.employees.length === 0) {
           tile.building = null;
           defenderBuildingsLost++;
         }
       }
     }
+
+    // Pass 2: remaining losses hit regular employees
+    for (const row of target.world.grid) {
+      for (const tile of row) {
+        if (!tile.building || defenderLosses <= 0) continue;
+        tile.building.employees = tile.building.employees.filter((e) => {
+          if (defenderLosses <= 0) return true;
+          if (getEmployeeCategory(e.type) === 'office') {
+            defenderLosses--;
+            defenderRegularLost++;
+            target.world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+            return false;
+          }
+          return true;
+        });
+        if (tile.building.employees.length === 0) {
+          tile.building = null;
+          defenderBuildingsLost++;
+        }
+      }
+    }
+
+    const defenderEmployeesLost = defenderLawyersLost + defenderRegularLost;
 
     const attackerEmployeesLost = totalAttackers - attackersLeft;
 
