@@ -128,7 +128,8 @@ setInterval(() => {
                     if (getEmployeeCategory(e.type) === 'lawfirm') {
                       killRolls -= EMPLOYEE_CONFIG[e.type].health;
                       lawyersLost++;
-                      player.world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+                      player.world.mapDefense -=
+                        EMPLOYEE_CONFIG[e.type].defenseBoost;
                       return false;
                     }
                     return true;
@@ -151,7 +152,8 @@ setInterval(() => {
                     if (getEmployeeCategory(e.type) === 'office') {
                       killRolls--;
                       employeesLost++;
-                      player.world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+                      player.world.mapDefense -=
+                        EMPLOYEE_CONFIG[e.type].defenseBoost;
                       return false;
                     }
                     return true;

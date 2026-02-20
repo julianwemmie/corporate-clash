@@ -296,8 +296,7 @@ export class MapManager implements Manager {
         hasActive && !isThisTileHovered && !isThisTileSelected ? 0.3 : 1;
 
       const leftH =
-        this.tileTextures.left.height *
-        (HALF_W / this.tileTextures.left.width);
+        this.tileTextures.left.height * (HALF_W / this.tileTextures.left.width);
       const rightH =
         this.tileTextures.right.height *
         (HALF_W / this.tileTextures.right.width);

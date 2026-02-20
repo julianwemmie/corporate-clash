@@ -5,6 +5,8 @@ import {
   CELL_SIZE,
   GRID_SIZE,
   LEFT_PANEL_WIDTH,
+  MAP_PADDING,
+  MAP_OFFSET_Y,
 } from '../../engine/types.js';
 import { createOffsetRenderer } from '../../engine/Renderer.js';
 import type { CorporateWorld, Manager } from './types.js';
@@ -20,11 +22,17 @@ function getManagerOrigin(manager: Manager): { x: number; y: number } {
   if (manager instanceof LeftPanelManager) {
     return { x: 0, y: 0 };
   } else if (manager instanceof MapManager) {
-    return { x: LEFT_PANEL_WIDTH, y: 0 };
+    return { x: LEFT_PANEL_WIDTH + MAP_PADDING, y: MAP_OFFSET_Y };
   } else if (manager instanceof RightPanelManager) {
-    return { x: LEFT_PANEL_WIDTH + GRID_SIZE * CELL_SIZE, y: 0 };
+    return {
+      x: LEFT_PANEL_WIDTH + MAP_PADDING + GRID_SIZE * CELL_SIZE + MAP_PADDING,
+      y: 0,
+    };
   } else if (manager instanceof AttackPanelManager) {
-    return { x: LEFT_PANEL_WIDTH + GRID_SIZE * CELL_SIZE, y: 0 };
+    return {
+      x: LEFT_PANEL_WIDTH + MAP_PADDING + GRID_SIZE * CELL_SIZE + MAP_PADDING,
+      y: 0,
+    };
   }
   return { x: 0, y: 0 };
 }
