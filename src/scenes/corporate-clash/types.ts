@@ -277,6 +277,7 @@ export interface GameState {
 // --- Full client state (GameState + per-player UI) ---
 
 export interface CorporateWorld extends GameState {
+  playerId: string;
   selectedTile: GridPos | null;
   uiMode: UIMode;
   hoveredTile: GridPos | null;
@@ -284,7 +285,7 @@ export interface CorporateWorld extends GameState {
 
 // --- Factory ---
 
-export function createWorld(gridSize: number): CorporateWorld {
+export function createWorld(gridSize: number, playerId: string = ''): CorporateWorld {
   const grid: Tile[][] = [];
   for (let row = 0; row < gridSize; row++) {
     const rowTiles: Tile[] = [];
@@ -299,6 +300,7 @@ export function createWorld(gridSize: number): CorporateWorld {
     funds: STARTING_FUNDS,
     mapDefense: MAP_DEFENSE,
     grid,
+    playerId,
     selectedTile: null,
     uiMode: { kind: 'none' },
     hoveredTile: null,

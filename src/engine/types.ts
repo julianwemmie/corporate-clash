@@ -19,6 +19,7 @@ export interface GameContext {
   cellSize: number;
   canvasWidth: number;
   canvasHeight: number;
+  playerId: string;
 }
 
 export interface Renderer {

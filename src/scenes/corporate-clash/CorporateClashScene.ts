@@ -42,9 +42,9 @@ export class CorporateClashScene implements Scene {
   private network!: NetworkManager;
 
   init(ctx: GameContext): void {
-    this.world = createWorld(ctx.gridSize);
+    this.world = createWorld(ctx.gridSize, ctx.playerId);
 
-    this.network = new NetworkManager();
+    this.network = new NetworkManager(ctx.playerId);
     this.network.connect();
 
     this.managers = [
