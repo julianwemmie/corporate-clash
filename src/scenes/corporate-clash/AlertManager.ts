@@ -4,9 +4,9 @@ import { CorporateWorld, Manager } from './types';
 export class AlertManager implements Manager {
   onKeyDown(world: CorporateWorld, key: string): void {
     if (world.uiMode.kind !== 'alert') return;
-    if (key === 'Space') {
+    if (key === 'Space' && world.alertInfo?.dismissable) {
       world.uiMode = { kind: 'none' };
-      world.attackActive = null;
+      world.alertInfo = null;
     }
   }
 
@@ -27,26 +27,25 @@ export class AlertManager implements Manager {
       { alpha: 0.9 },
     );
 
-    const alertTitle = 'Attack!';
-    renderer.drawText(alertTitle, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 85, {
+    renderer.drawText(world.alertInfo?.title ?? '', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 85, {
       fontSize: 24,
       color: 0xffffff,
       anchor: 0.5,
     });
 
-    const alertMessage = `You have been attacked by a rival company! Damage Report: Employees Lost ${world.attackActive?.employeesLost} Buildings Lost ${world.attackActive?.buildingsLost}`;
-    renderer.drawText(alertMessage, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10, {
+    renderer.drawText(world.alertInfo?.message ?? '', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10, {
       fontSize: 14,
       color: 0xffffff,
       anchor: 0.5,
     });
 
-    const alertSubMessage = 'Space bar to continue...';
-    renderer.drawText(
-      alertSubMessage,
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2 + 60,
-      { fontSize: 12, color: 0xffffff, anchor: 0.5 },
-    );
+    if (world.alertInfo?.dismissable) {
+      renderer.drawText(
+        'Space bar to continue...',
+        CANVAS_WIDTH / 2,
+        CANVAS_HEIGHT / 2 + 60,
+        { fontSize: 12, color: 0xffffff, anchor: 0.5 },
+      );
+    }
   }
 }

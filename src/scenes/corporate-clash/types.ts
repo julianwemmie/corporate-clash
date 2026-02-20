@@ -201,10 +201,6 @@ export type UIMode =
   | { kind: 'lawfirmEmployeePanel'; tile: GridPos }
   | { kind: 'alert' };
 
-export interface DamageReport {
-  buildingsLost: number;
-  employeesLost: number;
-}
 export interface CorporateWorld {
   phase: GamePhase;
   funds: number;
@@ -213,8 +209,14 @@ export interface CorporateWorld {
   selectedTile: GridPos | null;
   uiMode: UIMode;
   hoveredTile: GridPos | null;
-  attackActive: DamageReport | null;
+  alertInfo: AlertInfo | null;
   attackTimer: number;
+}
+
+export interface AlertInfo {
+  title: string;
+  message: string;
+  dismissable: boolean;
 }
 
 // --- Factory ---
@@ -237,7 +239,7 @@ export function createWorld(gridSize: number): CorporateWorld {
     selectedTile: null,
     uiMode: { kind: 'none' },
     hoveredTile: null,
-    attackActive: null,
+    alertInfo: null,
     attackTimer: ATTACK_INTERVAL_TICKS,
   };
 }
