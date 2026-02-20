@@ -227,7 +227,7 @@ export type UIMode =
   | { kind: 'officeEmployeePanel'; tile: GridPos }
   | { kind: 'lawfirmEmployeePanel'; tile: GridPos }
   | { kind: 'alert' }
-  | { kind: 'attackPanel' };
+  | { kind: 'attackPanel'; targetId: string | null; troops: AttackTroop[] };
 
 export interface DamageReport {
   buildingsLost: number;
@@ -285,7 +285,10 @@ export interface CorporateWorld extends GameState {
 
 // --- Factory ---
 
-export function createWorld(gridSize: number, playerId: string = ''): CorporateWorld {
+export function createWorld(
+  gridSize: number,
+  playerId: string = '',
+): CorporateWorld {
   const grid: Tile[][] = [];
   for (let row = 0; row < gridSize; row++) {
     const rowTiles: Tile[] = [];
