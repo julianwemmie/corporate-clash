@@ -185,7 +185,7 @@ export type OfficeType = 'office' | 'lawfirm';
 
 export interface Building {
   type: BuildingType;
-  employees: OfficeEmployee[] | LawfirmEmployee[];
+  employees: (OfficeEmployee | LawfirmEmployee)[];
 }
 
 export interface Tile {

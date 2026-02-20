@@ -27,17 +27,27 @@ export class AlertManager implements Manager {
       { alpha: 0.9 },
     );
 
-    renderer.drawText(world.alertInfo?.title ?? '', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 85, {
-      fontSize: 24,
-      color: 0xffffff,
-      anchor: 0.5,
-    });
+    renderer.drawText(
+      world.alertInfo?.title ?? '',
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2 - 85,
+      {
+        fontSize: 24,
+        color: 0xffffff,
+        anchor: 0.5,
+      },
+    );
 
-    renderer.drawText(world.alertInfo?.message ?? '', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10, {
-      fontSize: 14,
-      color: 0xffffff,
-      anchor: 0.5,
-    });
+    renderer.drawText(
+      world.alertInfo?.message ?? '',
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2 - 10,
+      {
+        fontSize: 14,
+        color: 0xffffff,
+        anchor: 0.5,
+      },
+    );
 
     if (world.alertInfo?.dismissable) {
       renderer.drawText(

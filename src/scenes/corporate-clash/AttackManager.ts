@@ -17,7 +17,8 @@ export class AttackManager implements Manager {
     world.attackTimer = ATTACK_INTERVAL_TICKS;
 
     const attackPower = Math.floor(
-      Math.random() * (ATTACK_POWER_MAX - ATTACK_POWER_MIN + 1) + ATTACK_POWER_MIN,
+      Math.random() * (ATTACK_POWER_MAX - ATTACK_POWER_MIN + 1) +
+        ATTACK_POWER_MIN,
     );
 
     const effectiveDamage = Math.max(0, attackPower - world.mapDefense);

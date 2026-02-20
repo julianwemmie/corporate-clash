@@ -27,15 +27,15 @@ The server only writes to the DB when something actually changes — a building 
 
 Since nothing is real-time, plain REST handles everything:
 
-| Endpoint | Purpose |
-|----------|---------|
-| `POST /api/auth/register` | Create account |
-| `POST /api/auth/login` | Session/JWT |
-| `GET /api/game/state` | Fetch your world (server computes current funds) |
-| `POST /api/game/build` | Place a building |
-| `POST /api/game/hire` | Hire an employee |
-| `POST /api/game/attack/:targetId` | Launch attack on another player |
-| `GET /api/leaderboard` | Rankings |
+| Endpoint                          | Purpose                                          |
+| --------------------------------- | ------------------------------------------------ |
+| `POST /api/auth/register`         | Create account                                   |
+| `POST /api/auth/login`            | Session/JWT                                      |
+| `GET /api/game/state`             | Fetch your world (server computes current funds) |
+| `POST /api/game/build`            | Place a building                                 |
+| `POST /api/game/hire`             | Hire an employee                                 |
+| `POST /api/game/attack/:targetId` | Launch attack on another player                  |
+| `GET /api/leaderboard`            | Rankings                                         |
 
 Every mutation endpoint validates server-side (can they afford it? is the tile empty? is the building at capacity?).
 
