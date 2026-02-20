@@ -2,7 +2,9 @@ import type { Renderer } from '../../engine/types.js';
 import { CELL_SIZE } from '../../engine/types.js';
 import {
   BUILDING_TYPES,
-  EMPLOYEE_TYPES,
+  type EmployeeBuildingType,
+  OFFICE_EMPLOYEE_TYPES,
+  LAWFIRM_EMPLOYEE_TYPES,
   type CorporateWorld,
   type GameAction,
   type GridPos,
@@ -40,7 +42,8 @@ export class MapManager implements Manager {
 
     if (
       world.uiMode.kind === 'buildingPanel' ||
-      world.uiMode.kind === 'employeePanel'
+      world.uiMode.kind === 'officeEmployeePanel' ||
+      world.uiMode.kind === 'lawfirmEmployeePanel'
     ) {
       world.uiMode = { kind: 'none' };
       return;
@@ -48,10 +51,13 @@ export class MapManager implements Manager {
 
     if (world.uiMode.kind === 'none') {
       const tile = world.grid[gridPos.row][gridPos.col];
+
       if (!tile.building) {
         world.uiMode = { kind: 'buildingPanel', tile: gridPos };
+      } else if (tile.building.type === 'lawfirm') {
+        world.uiMode = { kind: 'lawfirmEmployeePanel', tile: gridPos };
       } else {
-        world.uiMode = { kind: 'employeePanel', tile: gridPos };
+        world.uiMode = { kind: 'officeEmployeePanel', tile: gridPos };
       }
     }
   }
@@ -67,8 +73,10 @@ export class MapManager implements Manager {
       return;
     } else if (world.uiMode.kind === 'buildingPanel') {
       this.handleBuildingKey(world, key);
-    } else if (world.uiMode.kind === 'employeePanel') {
-      this.handleEmployeeKey(world, key);
+    } else if (world.uiMode.kind === 'officeEmployeePanel') {
+      this.handleEmployeeKey(world, 'office', key);
+    } else if (world.uiMode.kind === 'lawfirmEmployeePanel') {
+      this.handleEmployeeKey(world, 'lawfirm', key);
     }
   }
 
@@ -88,16 +96,28 @@ export class MapManager implements Manager {
     this.sendAction({ kind: 'build', row, col, buildingType });
   }
 
-  private handleEmployeeKey(world: CorporateWorld, key: string): void {
+  private handleEmployeeKey(
+    world: CorporateWorld,
+    buildingType: EmployeeBuildingType,
+    key: string,
+  ): void {
     if (key === 'Escape') {
       world.uiMode = { kind: 'none' };
       return;
     }
 
-    if (world.uiMode.kind !== 'employeePanel') return;
+    if (
+      world.uiMode.kind !== 'officeEmployeePanel' &&
+      world.uiMode.kind !== 'lawfirmEmployeePanel'
+    )
+      return;
 
     const index = parseInt(key.replace('Digit', '')) - 1;
-    const employeeType = EMPLOYEE_TYPES[index];
+
+    const employeeType =
+      buildingType === 'office'
+        ? OFFICE_EMPLOYEE_TYPES[index]
+        : LAWFIRM_EMPLOYEE_TYPES[index];
     if (!employeeType) return;
 
     const { row, col } = world.uiMode.tile;
@@ -119,6 +139,7 @@ export class MapManager implements Manager {
         '/assets/icons/building-smallOffice.png',
         '/assets/icons/building-mediumOffice.png',
         '/assets/icons/building-skyscraper.png',
+        '/assets/icons/building-lawfirm.png',
       ]).then((textures) => {
         this.buildingTextures.set(
           'smallOffice',
@@ -131,6 +152,10 @@ export class MapManager implements Manager {
         this.buildingTextures.set(
           'skyscraper',
           textures['/assets/icons/building-skyscraper.png'],
+        );
+        this.buildingTextures.set(
+          'lawfirm',
+          textures['/assets/icons/building-lawfirm.png'],
         );
       });
     }

@@ -21,6 +21,7 @@ export class NetworkManager implements Manager {
 
     world.phase = this.pending.phase;
     world.funds = this.pending.funds;
+    world.mapDefense = this.pending.mapDefense;
     world.grid = this.pending.grid;
     world.attackActive = this.pending.attackActive;
     world.attackTimer = this.pending.attackTimer;

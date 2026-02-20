@@ -22,23 +22,35 @@ export class LeftPanelManager implements Manager {
 
     const secondsLeft = Math.ceil(world.attackTimer * TICK_RATE_S);
 
-    return { funds: world.funds, buildings, employees, secondsLeft };
+    return {
+      funds: world.funds,
+      mapDefense: world.mapDefense,
+      buildings,
+      employees,
+      secondsLeft,
+    };
   }
 
   render(world: CorporateWorld, renderer: Renderer): void {
     if (world.phase === 'playing') {
       renderer.drawRect(0, 0, LEFT_PANEL_WIDTH, CANVAS_HEIGHT, 0x000000);
 
-      const { funds, buildings, employees, secondsLeft } = this.display(world);
+      const { funds, mapDefense, buildings, employees, secondsLeft } =
+        this.display(world);
       renderer.drawText(`$${funds.toLocaleString()}`, 10, 10, {
         fontSize: 20,
         color: 0x2ecc71,
       });
-      renderer.drawText(`Buildings: ${buildings}`, 10, 36, {
+
+      renderer.drawText(`Defense: ${mapDefense.toLocaleString()}`, 10, 40, {
+        fontSize: 20,
+        color: 0x2ecc71,
+      });
+      renderer.drawText(`Buildings: ${buildings}`, 10, 76, {
         fontSize: 14,
         color: 0xcccccc,
       });
-      renderer.drawText(`Employees: ${employees}`, 10, 56, {
+      renderer.drawText(`Employees: ${employees}`, 10, 106, {
         fontSize: 14,
         color: 0xcccccc,
       });

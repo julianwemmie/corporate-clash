@@ -12,7 +12,6 @@ export const CANVAS_WIDTH =
 export const TICK_RATE_MS = 150; // ~6.67 ticks/sec
 export const TICK_RATE_S = TICK_RATE_MS / 1000; // 0.15s per tick
 export const MAX_ACCUMULATOR_MS = 1000;
-
 // --- Interfaces ---
 
 export interface GameContext {
