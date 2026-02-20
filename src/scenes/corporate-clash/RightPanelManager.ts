@@ -3,8 +3,11 @@ import { CANVAS_HEIGHT, RIGHT_PANEL_WIDTH } from '../../engine/types.js';
 import {
   BUILDING_CONFIG,
   BUILDING_TYPES,
-  EMPLOYEE_CONFIG,
-  EMPLOYEE_TYPES,
+  OFFICE_EMPLOYEE_CONFIG,
+  OFFICE_EMPLOYEE_TYPES,
+  LAWFIRM_EMPLOYEE_CONFIG,
+  LAWFIRM_EMPLOYEE_TYPES,
+  type EmployeeConfig,
   type CorporateWorld,
   type Manager,
 } from './types.js';
@@ -24,7 +27,10 @@ export class RightPanelManager implements Manager {
 
     if (world.uiMode.kind === 'buildingPanel') {
       this.renderBuildingPanel(world, renderer);
-    } else if (world.uiMode.kind === 'employeePanel') {
+    } else if (
+      world.uiMode.kind === 'officeEmployeePanel' ||
+      world.uiMode.kind === 'lawfirmEmployeePanel'
+    ) {
       this.renderEmployeePanel(world, renderer);
     }
   }
@@ -65,11 +71,17 @@ export class RightPanelManager implements Manager {
   }
 
   private renderEmployeePanel(world: CorporateWorld, renderer: Renderer): void {
-    if (world.uiMode.kind !== 'employeePanel') return;
+    if (
+      world.uiMode.kind !== 'officeEmployeePanel' &&
+      world.uiMode.kind !== 'lawfirmEmployeePanel'
+    )
+      return;
     const { row, col } = world.uiMode.tile;
     const building = world.grid[row][col].building;
+
     if (!building) return;
 
+    const { type: buildingType } = building;
     const capacity = BUILDING_CONFIG[building.type].capacity;
     const current = building.employees.length;
     let y = 10;
@@ -86,11 +98,38 @@ export class RightPanelManager implements Manager {
     });
     y += LINE_HEIGHT + 6;
 
-    EMPLOYEE_TYPES.forEach((type, i) => {
-      const config = EMPLOYEE_CONFIG[type];
-      const canAfford = world.funds >= config.cost;
-      const hasRoom = current < capacity;
-      const color = canAfford && hasRoom ? BRIGHT : DIM;
+    const [types, configMap] =
+      buildingType === 'lawfirm'
+        ? [LAWFIRM_EMPLOYEE_TYPES, LAWFIRM_EMPLOYEE_CONFIG]
+        : [OFFICE_EMPLOYEE_TYPES, OFFICE_EMPLOYEE_CONFIG];
+
+    y = this.renderEmployeeOptions(
+      renderer,
+      types,
+      configMap,
+      world.funds,
+      current < capacity,
+      y,
+    );
+
+    y += 4;
+    renderer.drawText('[ESC] Close', PANEL_X, y, {
+      fontSize: OPTION_SIZE,
+      color: 0xaaaaaa,
+    });
+  }
+
+  private renderEmployeeOptions(
+    renderer: Renderer,
+    types: string[],
+    configMap: Record<string, EmployeeConfig>,
+    funds: number,
+    hasRoom: boolean,
+    y: number,
+  ): number {
+    types.forEach((type, i) => {
+      const config = configMap[type];
+      const color = funds >= config.cost && hasRoom ? BRIGHT : DIM;
 
       renderer.drawText(`[${i + 1}] ${config.label}`, PANEL_X, y, {
         fontSize: OPTION_SIZE,
@@ -105,11 +144,6 @@ export class RightPanelManager implements Manager {
       );
       y += LINE_HEIGHT;
     });
-
-    y += 4;
-    renderer.drawText('[ESC] Close', PANEL_X, y, {
-      fontSize: OPTION_SIZE,
-      color: 0xaaaaaa,
-    });
+    return y;
   }
 }

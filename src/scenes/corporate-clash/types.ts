@@ -1,19 +1,34 @@
 import type { Renderer } from '../../engine/types.js';
 
 // --- Game Phase ---
-
 export type GamePhase = 'playing' | 'gameOver';
 
 // --- Grid ---
-
 export interface GridPos {
   row: number;
   col: number;
 }
 
-// --- Buildings ---
+// --- Constants ---
 
-export type BuildingType = 'smallOffice' | 'mediumOffice' | 'skyscraper';
+export const STARTING_FUNDS = 500_000;
+export const ATTACK_INTERVAL_TICKS = 200;
+export const MAP_DEFENSE = 0;
+export const OFFICE_EMPLOYEE_HEALTH = 1;
+
+// --- Buildings ---
+export type BuildingType =
+  | 'smallOffice'
+  | 'mediumOffice'
+  | 'skyscraper'
+  | 'lawfirm';
+
+export const BUILDING_TYPES: BuildingType[] = [
+  'smallOffice',
+  'mediumOffice',
+  'skyscraper',
+  'lawfirm',
+];
 
 export interface BuildingConfig {
   label: string;
@@ -41,68 +56,136 @@ export const BUILDING_CONFIG: Record<BuildingType, BuildingConfig> = {
     capacity: 30,
     color: 0x1a5276,
   },
+  lawfirm: {
+    label: 'Lawfirm',
+    cost: 50_000,
+    capacity: 10,
+    color: 0x1a5276,
+  },
 };
-
-export const BUILDING_TYPES: BuildingType[] = [
-  'smallOffice',
-  'mediumOffice',
-  'skyscraper',
-];
 
 // --- Employees ---
 
-export type EmployeeType = 'staff' | 'engineer' | 'marketing' | 'officeWorker';
+export type OfficeEmployeeType =
+  | 'officeWorker'
+  | 'staff'
+  | 'engineer'
+  | 'marketing';
+
+export type LawfirmEmployeeType =
+  | 'juniorLawyer'
+  | 'associateLawyer'
+  | 'seniorCounselLawyer';
 
 export interface EmployeeConfig {
   label: string;
   cost: number;
   profitPerTick: number;
   color: number;
+  health: number;
+  defenseBoost: number;
 }
 
-export const EMPLOYEE_CONFIG: Record<EmployeeType, EmployeeConfig> = {
+export const OFFICE_EMPLOYEE_CONFIG: Record<
+  OfficeEmployeeType,
+  EmployeeConfig
+> = {
   officeWorker: {
     label: 'Office Worker',
     cost: 5_000,
     profitPerTick: 800,
     color: 0x95a5a6,
+    health: OFFICE_EMPLOYEE_HEALTH,
+    defenseBoost: 0,
   },
   staff: {
     label: 'Staff',
     cost: 10_000,
     profitPerTick: 2_000,
     color: 0x27ae60,
+    health: OFFICE_EMPLOYEE_HEALTH,
+    defenseBoost: 0,
   },
   marketing: {
     label: 'Marketing',
     cost: 25_000,
     profitPerTick: 5_000,
     color: 0xe67e22,
+    health: OFFICE_EMPLOYEE_HEALTH,
+    defenseBoost: 0,
   },
   engineer: {
     label: 'Engineer',
     cost: 40_000,
     profitPerTick: 8_000,
     color: 0x8e44ad,
+    health: 1,
+    defenseBoost: 0,
   },
 };
 
-export const EMPLOYEE_TYPES: EmployeeType[] = [
+export const OFFICE_EMPLOYEE_TYPES: OfficeEmployeeType[] = [
   'officeWorker',
   'staff',
   'marketing',
   'engineer',
 ];
 
+export const LAWFIRM_EMPLOYEE_CONFIG: Record<
+  LawfirmEmployeeType,
+  EmployeeConfig
+> = {
+  juniorLawyer: {
+    label: 'Junior Lawyer',
+    cost: 50_000,
+    profitPerTick: -1000,
+    color: 0x8e44ad,
+    health: 3 * OFFICE_EMPLOYEE_HEALTH,
+    defenseBoost: 100,
+  },
+  associateLawyer: {
+    label: 'Associate Lawyer',
+    cost: 100_000,
+    profitPerTick: -5000,
+    color: 0x8e44ad,
+    health: 4 * OFFICE_EMPLOYEE_HEALTH,
+    defenseBoost: 500,
+  },
+  seniorCounselLawyer: {
+    label: 'Senior Counsel Lawyer',
+    cost: 200_000,
+    profitPerTick: -10000,
+    color: 0x8e44ad,
+    health: 5 * OFFICE_EMPLOYEE_HEALTH,
+    defenseBoost: 1000,
+  },
+};
+export const LAWFIRM_EMPLOYEE_TYPES: LawfirmEmployeeType[] = [
+  'juniorLawyer',
+  'associateLawyer',
+  'seniorCounselLawyer',
+];
+
+export function getEmployeeCategory(type: string): OfficeType {
+  if ((OFFICE_EMPLOYEE_TYPES as string[]).includes(type)) return 'office';
+  if ((LAWFIRM_EMPLOYEE_TYPES as string[]).includes(type)) return 'lawfirm';
+  throw new Error(`Unknown employee type: ${type}`);
+}
+
 // --- World State ---
 
-export interface Employee {
-  type: EmployeeType;
+export interface OfficeEmployee {
+  type: OfficeEmployeeType;
 }
+export interface LawfirmEmployee {
+  type: LawfirmEmployeeType;
+}
+
+export type OfficeType = 'office' | 'lawfirm';
 
 export interface Building {
   type: BuildingType;
-  employees: Employee[];
+  employees: OfficeEmployee[] | LawfirmEmployee[];
 }
 
 export interface Tile {
@@ -114,7 +197,8 @@ export interface Tile {
 export type UIMode =
   | { kind: 'none' }
   | { kind: 'buildingPanel'; tile: GridPos }
-  | { kind: 'employeePanel'; tile: GridPos }
+  | { kind: 'officeEmployeePanel'; tile: GridPos }
+  | { kind: 'lawfirmEmployeePanel'; tile: GridPos }
   | { kind: 'alert' };
 
 export interface DamageReport {
@@ -124,6 +208,7 @@ export interface DamageReport {
 export interface CorporateWorld {
   phase: GamePhase;
   funds: number;
+  mapDefense: number;
   grid: Tile[][];
   selectedTile: GridPos | null;
   uiMode: UIMode;
@@ -131,11 +216,6 @@ export interface CorporateWorld {
   attackActive: DamageReport | null;
   attackTimer: number;
 }
-
-// --- Constants ---
-
-export const STARTING_FUNDS = 500_000;
-export const ATTACK_INTERVAL_TICKS = 200;
 
 // --- Factory ---
 
@@ -152,6 +232,7 @@ export function createWorld(gridSize: number): CorporateWorld {
   return {
     phase: 'playing',
     funds: STARTING_FUNDS,
+    mapDefense: MAP_DEFENSE,
     grid,
     selectedTile: null,
     uiMode: { kind: 'none' },

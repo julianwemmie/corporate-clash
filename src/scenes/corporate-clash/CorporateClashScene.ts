@@ -42,6 +42,7 @@ export class CorporateClashScene implements Scene {
 
   init(ctx: GameContext): void {
     this.world = createWorld(ctx.gridSize);
+
     this.managers = [
       new MapManager(),
       new AttackManager(),

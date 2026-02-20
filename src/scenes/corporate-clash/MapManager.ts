@@ -3,8 +3,11 @@ import { CELL_SIZE } from '../../engine/types.js';
 import {
   BUILDING_CONFIG,
   BUILDING_TYPES,
-  EMPLOYEE_CONFIG,
-  EMPLOYEE_TYPES,
+  EmployeeBuildingType,
+  OFFICE_EMPLOYEE_CONFIG,
+  OFFICE_EMPLOYEE_TYPES,
+  LAWFIRM_EMPLOYEE_CONFIG,
+  LAWFIRM_EMPLOYEE_TYPES,
   type CorporateWorld,
   type GridPos,
   type Manager,
@@ -41,7 +44,8 @@ export class MapManager implements Manager {
 
     if (
       world.uiMode.kind === 'buildingPanel' ||
-      world.uiMode.kind === 'employeePanel'
+      world.uiMode.kind === 'officeEmployeePanel' ||
+      world.uiMode.kind === 'lawfirmEmployeePanel'
     ) {
       world.uiMode = { kind: 'none' };
       return;
@@ -49,10 +53,13 @@ export class MapManager implements Manager {
 
     if (world.uiMode.kind === 'none') {
       const tile = world.grid[gridPos.row][gridPos.col];
+
       if (!tile.building) {
         world.uiMode = { kind: 'buildingPanel', tile: gridPos };
+      } else if (tile.building.type === 'lawfirm') {
+        world.uiMode = { kind: 'lawfirmEmployeePanel', tile: gridPos };
       } else {
-        world.uiMode = { kind: 'employeePanel', tile: gridPos };
+        world.uiMode = { kind: 'officeEmployeePanel', tile: gridPos };
       }
     }
   }
@@ -68,8 +75,10 @@ export class MapManager implements Manager {
       return;
     } else if (world.uiMode.kind === 'buildingPanel') {
       this.handleBuildingKey(world, key);
-    } else if (world.uiMode.kind === 'employeePanel') {
-      this.handleEmployeeKey(world, key);
+    } else if (world.uiMode.kind === 'officeEmployeePanel') {
+      this.handleEmployeeKey(world, 'office', key);
+    } else if (world.uiMode.kind === 'lawfirmEmployeePanel') {
+      this.handleEmployeeKey(world, 'lawfirm', key);
     }
   }
 
@@ -96,29 +105,58 @@ export class MapManager implements Manager {
     }
   }
 
-  private handleEmployeeKey(world: CorporateWorld, key: string): void {
+  private handleEmployeeKey(
+    world: CorporateWorld,
+    buildingType: EmployeeBuildingType,
+    key: string,
+  ): void {
     if (key === 'Escape') {
       world.uiMode = { kind: 'none' };
       return;
     }
 
-    if (world.uiMode.kind !== 'employeePanel') return;
+    if (
+      world.uiMode.kind !== 'officeEmployeePanel' &&
+      world.uiMode.kind !== 'lawfirmEmployeePanel'
+    )
+      return;
 
     const index = parseInt(key.replace('Digit', '')) - 1;
-    const type = EMPLOYEE_TYPES[index];
-    if (!type) return;
 
-    const { row, col } = world.uiMode.tile;
-    const tile = world.grid[row][col];
-    const building = tile.building;
-    if (!building) return;
+    if (buildingType === 'office') {
+      const type = OFFICE_EMPLOYEE_TYPES[index];
+      if (!type) return;
 
-    const config = EMPLOYEE_CONFIG[type];
-    const capacity = BUILDING_CONFIG[building.type].capacity;
+      const { row, col } = world.uiMode.tile;
+      const tile = world.grid[row][col];
+      const building = tile.building;
+      if (!building) return;
 
-    if (world.funds >= config.cost && building.employees.length < capacity) {
-      world.funds -= config.cost;
-      building.employees.push({ type });
+      const config = OFFICE_EMPLOYEE_CONFIG[type];
+      const capacity = BUILDING_CONFIG[building.type].capacity;
+
+      if (world.funds >= config.cost && building.employees.length < capacity) {
+        world.funds -= config.cost;
+        building.employees.push({ type });
+      }
+    } else if (buildingType === 'lawfirm') {
+      const type = LAWFIRM_EMPLOYEE_TYPES[index];
+      if (!type) return;
+
+      const { row, col } = world.uiMode.tile;
+      const tile = world.grid[row][col];
+      const building = tile.building;
+      if (!building) return;
+
+      const config = LAWFIRM_EMPLOYEE_CONFIG[type];
+      const capacity = BUILDING_CONFIG[building.type].capacity;
+
+      if (world.funds >= config.cost && building.employees.length < capacity) {
+        world.funds -= config.cost;
+        building.employees.push({ type });
+      }
+
+      world.mapDefense += LAWFIRM_EMPLOYEE_CONFIG[type].defenseBoost;
     }
   }
 
@@ -129,6 +167,7 @@ export class MapManager implements Manager {
         '/assets/icons/building-smallOffice.png',
         '/assets/icons/building-mediumOffice.png',
         '/assets/icons/building-skyscraper.png',
+        '/assets/icons/building-lawfirm.png',
       ]).then((textures) => {
         this.buildingTextures.set(
           'smallOffice',
@@ -141,6 +180,10 @@ export class MapManager implements Manager {
         this.buildingTextures.set(
           'skyscraper',
           textures['/assets/icons/building-skyscraper.png'],
+        );
+        this.buildingTextures.set(
+          'lawfirm',
+          textures['/assets/icons/building-lawfirm.png'],
         );
       });
     }
