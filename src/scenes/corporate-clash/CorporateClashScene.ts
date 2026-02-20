@@ -13,6 +13,7 @@ import { RightPanelManager } from './RightPanelManager.js';
 import { LeftPanelManager } from './LeftPanelManager.js';
 import { MapManager } from './MapManager.js';
 import { AlertManager } from './AlertManager.js';
+import { AttackPanelManager } from './AttackPanelManager.js';
 import { NetworkManager } from './NetworkManager.js';
 
 function getManagerOrigin(manager: Manager): { x: number; y: number } {
@@ -21,6 +22,8 @@ function getManagerOrigin(manager: Manager): { x: number; y: number } {
   } else if (manager instanceof MapManager) {
     return { x: LEFT_PANEL_WIDTH, y: 0 };
   } else if (manager instanceof RightPanelManager) {
+    return { x: LEFT_PANEL_WIDTH + GRID_SIZE * CELL_SIZE, y: 0 };
+  } else if (manager instanceof AttackPanelManager) {
     return { x: LEFT_PANEL_WIDTH + GRID_SIZE * CELL_SIZE, y: 0 };
   }
   return { x: 0, y: 0 };
@@ -42,9 +45,9 @@ export class CorporateClashScene implements Scene {
   private network!: NetworkManager;
 
   init(ctx: GameContext): void {
-    this.world = createWorld(ctx.gridSize);
+    this.world = createWorld(ctx.gridSize, ctx.playerId);
 
-    this.network = new NetworkManager();
+    this.network = new NetworkManager(ctx.playerId);
     this.network.connect();
 
     this.managers = [
@@ -52,6 +55,7 @@ export class CorporateClashScene implements Scene {
       new MapManager(),
       new LeftPanelManager(),
       new RightPanelManager(),
+      new AttackPanelManager(),
       new AlertManager(),
     ];
   }

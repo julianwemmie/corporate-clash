@@ -196,6 +196,20 @@ export interface LawfirmEmployee {
 
 export type OfficeType = 'office' | 'lawfirm';
 
+export interface PlayerInfo {
+  id: string;
+  name: string;
+  funds: number;
+  buildingCount: number;
+  employeeCount: number;
+}
+
+export interface AttackTroop {
+  row: number;
+  col: number;
+  count: number;
+}
+
 export interface Building {
   type: BuildingType;
   employees: (OfficeEmployee | LawfirmEmployee)[];
@@ -212,18 +226,40 @@ export type UIMode =
   | { kind: 'buildingPanel'; tile: GridPos }
   | { kind: 'officeEmployeePanel'; tile: GridPos }
   | { kind: 'lawfirmEmployeePanel'; tile: GridPos }
-  | { kind: 'alert' };
+  | { kind: 'alert' }
+  | { kind: 'attackPanel'; targetId: string | null; troops: AttackTroop[] };
 
 export interface DamageReport {
   buildingsLost: number;
   employeesLost: number;
+  attackerName: string | null;
+  defender: string | null;
+  isAttacker: boolean;
 }
 
 // --- Player Actions (client → server) ---
 
 export type GameAction =
-  | { kind: 'build'; row: number; col: number; buildingType: BuildingType }
-  | { kind: 'hire'; row: number; col: number; employeeType: EmployeeType };
+  | {
+      kind: 'build';
+      playerId: string;
+      row: number;
+      col: number;
+      buildingType: BuildingType;
+    }
+  | {
+      kind: 'hire';
+      playerId: string;
+      row: number;
+      col: number;
+      employeeType: EmployeeType;
+    }
+  | {
+      kind: 'attack';
+      playerId: string;
+      targetId: string;
+      troops: AttackTroop[];
+    };
 
 // --- Server-authoritative state (broadcast to all clients) ---
 
@@ -234,11 +270,15 @@ export interface GameState {
   grid: Tile[][];
   attackActive: DamageReport | null;
   attackTimer: number;
+  attackCooldown: number;
+  defenseBuffer: number;
+  players: PlayerInfo[];
 }
 
 // --- Full client state (GameState + per-player UI) ---
 
 export interface CorporateWorld extends GameState {
+  playerId: string;
   selectedTile: GridPos | null;
   uiMode: UIMode;
   hoveredTile: GridPos | null;
@@ -246,7 +286,10 @@ export interface CorporateWorld extends GameState {
 
 // --- Factory ---
 
-export function createWorld(gridSize: number): CorporateWorld {
+export function createWorld(
+  gridSize: number,
+  playerId: string = '',
+): CorporateWorld {
   const grid: Tile[][] = [];
   for (let row = 0; row < gridSize; row++) {
     const rowTiles: Tile[] = [];
@@ -261,11 +304,15 @@ export function createWorld(gridSize: number): CorporateWorld {
     funds: STARTING_FUNDS,
     mapDefense: MAP_DEFENSE,
     grid,
+    playerId,
     selectedTile: null,
     uiMode: { kind: 'none' },
     hoveredTile: null,
     attackActive: null,
     attackTimer: ATTACK_INTERVAL_TICKS,
+    attackCooldown: 0,
+    defenseBuffer: 0,
+    players: [],
   };
 }
 

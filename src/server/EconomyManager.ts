@@ -1,4 +1,4 @@
-import type { CorporateWorld, EmployeeConfig, Manager } from './types.js';
+import type { CorporateWorld, EmployeeConfig, Manager } from '../scenes/corporate-clash/types.js';
 import {
   getEmployeeCategory,
   OFFICE_EMPLOYEE_CONFIG,
@@ -6,7 +6,7 @@ import {
   type OfficeEmployeeType,
   type LawfirmEmployeeType,
   type OfficeType,
-} from './types.js';
+} from '../scenes/corporate-clash/types.js';
 
 export class EconomyManager implements Manager {
   calculateProfit(

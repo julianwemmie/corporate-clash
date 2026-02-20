@@ -27,6 +27,7 @@ export class Game {
     cellSize: CELL_SIZE,
     canvasWidth: CANVAS_WIDTH,
     canvasHeight: CANVAS_HEIGHT,
+    playerId: '',
   };
 
   constructor(app: Application) {
@@ -35,16 +36,21 @@ export class Game {
     this.input = new Input(this.app.canvas);
   }
 
-  loadScene(scene: Scene): void {
+  loadScene(scene: Scene, options?: { playerId?: string }): void {
     if (this.scene) {
       this.input.setScene(null);
       this.scene.destroy();
     }
 
+    const ctx: GameContext = {
+      ...this.context,
+      ...(options?.playerId != null ? { playerId: options.playerId } : {}),
+    };
+
     this.scene = scene;
     this.errorMessage = null;
     this.input.setScene(scene);
-    scene.init(this.context);
+    scene.init(ctx);
 
     if (!this.running) {
       this.running = true;

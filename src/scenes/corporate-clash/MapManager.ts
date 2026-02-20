@@ -34,6 +34,11 @@ const DIRECTION_LABELS: Record<number, string> = {
 
 export class MapManager implements Manager {
   private buildingTextures = new Map<string, Texture>();
+  private tileTextures: {
+    top: Texture;
+    left: Texture;
+    right: Texture;
+  } | null = null;
   private rotation: 0 | 1 | 2 | 3 = 0;
 
   private rotateCoords(row: number, col: number): { row: number; col: number } {
@@ -159,7 +164,7 @@ export class MapManager implements Manager {
     if (!buildingType) return;
 
     const { row, col } = world.uiMode.tile;
-    this.sendAction({ kind: 'build', row, col, buildingType });
+    this.sendAction({ kind: 'build', playerId: world.playerId, row, col, buildingType });
 
     const panel =
       buildingType === 'lawfirm'
@@ -193,7 +198,13 @@ export class MapManager implements Manager {
     if (!employeeType) return;
 
     const { row, col } = world.uiMode.tile;
-    this.sendAction({ kind: 'hire', row, col, employeeType });
+    this.sendAction({
+      kind: 'hire',
+      playerId: world.playerId,
+      row,
+      col,
+      employeeType,
+    });
   }
 
   private sendAction(action: GameAction): void {
@@ -212,6 +223,9 @@ export class MapManager implements Manager {
         '/assets/buildings/mediumOffice.png',
         '/assets/buildings/largeOffice.png',
         '/assets/buildings/lawfirm.png',
+        '/assets/tiles/base-top.png',
+        '/assets/tiles/base-left.png',
+        '/assets/tiles/base-right.png',
       ]).then((textures) => {
         for (const texture of Object.values(textures) as Texture[]) {
           texture.source.scaleMode = 'nearest';
@@ -232,26 +246,71 @@ export class MapManager implements Manager {
           'lawfirm',
           textures['/assets/buildings/lawfirm.png'],
         );
+        this.tileTextures = {
+          top: textures['/assets/tiles/base-top.png'],
+          left: textures['/assets/tiles/base-left.png'],
+          right: textures['/assets/tiles/base-right.png'],
+        };
       });
     }
 
+    const hovered = world.hoveredTile;
+    const isHovering = hovered && this.isInBounds(world, hovered);
+
     // ground tiles
+    const sortedTiles: { row: number; col: number; depth: number }[] = [];
     for (let row = 0; row < world.grid.length; row++) {
       for (let col = 0; col < world.grid[row].length; col++) {
-        const { x, y } = this.gridToIso(row, col);
+        const r = this.rotateCoords(row, col);
+        sortedTiles.push({ row, col, depth: r.row + r.col });
+      }
+    }
+
+    sortedTiles.sort((a, b) => a.depth - b.depth);
+
+    for (const { row, col } of sortedTiles) {
+      const { x, y } = this.gridToIso(row, col);
+      const isThisTileHovered =
+        isHovering && hovered.row === row && hovered.col === col;
+      const tileAlpha = isHovering && !isThisTileHovered ? 0.3 : 1;
+
+      if (this.tileTextures) {
+        // side face - each side's bounding box is HALF_W wide and scaled
+        const leftH =
+          this.tileTextures.left.height *
+          (HALF_W / this.tileTextures.left.width);
+        const rightH =
+          this.tileTextures.right.height *
+          (HALF_W / this.tileTextures.right.width);
+
+        renderer.drawSprite(this.tileTextures.left, x - HALF_W, y, {
+          width: HALF_W,
+          height: leftH,
+          alpha: tileAlpha,
+        });
+        renderer.drawSprite(this.tileTextures.right, x, y, {
+          width: HALF_W,
+          height: rightH,
+          alpha: tileAlpha,
+        });
+        renderer.drawSprite(this.tileTextures.top, x - HALF_W, y - HALF_H, {
+          width: ISO_TILE_W,
+          height: ISO_TILE_H,
+          alpha: tileAlpha,
+        });
+      } else {
         renderer.drawDiamond(
           x,
           y,
           ISO_TILE_W,
           ISO_TILE_H,
           (row + col) % 2 === 0 ? 0x333333 : 0x222222,
+          { alpha: tileAlpha },
         );
       }
     }
 
-    // buildings back-to-front (sorted by rotated depth)
-    const hovered = world.hoveredTile;
-    const isHovering = hovered && this.isInBounds(world, hovered);
+    // buildings
     const buildings: { row: number; col: number; depth: number }[] = [];
     for (let row = 0; row < world.grid.length; row++) {
       for (let col = 0; col < world.grid[row].length; col++) {
@@ -260,6 +319,7 @@ export class MapManager implements Manager {
         buildings.push({ row, col, depth: r.row + r.col });
       }
     }
+
     buildings.sort((a, b) => a.depth - b.depth);
 
     for (const { row, col } of buildings) {
@@ -274,7 +334,7 @@ export class MapManager implements Manager {
       const scale = ISO_TILE_W / texture.width;
       const spriteW = ISO_TILE_W;
       const spriteH = texture.height * scale;
-      renderer.drawSprite(texture, x - spriteW / 2, y + HALF_H - spriteH, {
+      renderer.drawSprite(texture, x - spriteW / 2, y + HALF_H - spriteH + 2, {
         width: spriteW,
         height: spriteH,
         alpha: isHovering && !isThisHovered ? 0.3 : 1,
@@ -289,7 +349,7 @@ export class MapManager implements Manager {
       });
     }
 
-    // Rotation hint in top-right of map area
+    // rotation hint
     renderer.drawText(
       `[R] Rotate | Facing ${DIRECTION_LABELS[this.rotation]}`,
       MAP_AREA_W - 10,

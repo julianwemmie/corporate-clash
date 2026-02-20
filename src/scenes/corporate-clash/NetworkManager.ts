@@ -3,9 +3,14 @@ import type { CorporateWorld, GameState, Manager } from './types.js';
 export class NetworkManager implements Manager {
   private source: EventSource | null = null;
   private pending: GameState | null = null;
+  readonly playerId: string;
+
+  constructor(playerId: string) {
+    this.playerId = playerId;
+  }
 
   connect(): void {
-    this.source = new EventSource('/game/stream');
+    this.source = new EventSource(`/game/stream?playerId=${this.playerId}`);
 
     this.source.addEventListener('tick', (event) => {
       this.pending = JSON.parse(event.data) as GameState;
@@ -25,6 +30,9 @@ export class NetworkManager implements Manager {
     world.grid = this.pending.grid;
     world.attackActive = this.pending.attackActive;
     world.attackTimer = this.pending.attackTimer;
+    world.attackCooldown = this.pending.attackCooldown;
+    world.defenseBuffer = this.pending.defenseBuffer;
+    world.players = this.pending.players;
 
     this.pending = null;
   }
