@@ -31,12 +31,6 @@ export class EconomyManager implements Manager {
             world.funds += this.calculateProfit(configMap, employee.type);
             if (world.funds <= 0) {
               world.phase = 'gameOver';
-              world.uiMode = { kind: 'alert' };
-              world.alertInfo = {
-                title: 'Game Over',
-                message: 'Your company has gone bankrupt!',
-                dismissable: false,
-              };
               return;
             }
           }

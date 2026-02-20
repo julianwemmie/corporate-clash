@@ -19,12 +19,23 @@ export class NetworkManager implements Manager {
   update(world: CorporateWorld): void {
     if (!this.pending) return;
 
+    const wasPlaying = world.phase === 'playing';
+
     world.phase = this.pending.phase;
     world.funds = this.pending.funds;
     world.mapDefense = this.pending.mapDefense;
     world.grid = this.pending.grid;
     world.attackActive = this.pending.attackActive;
     world.attackTimer = this.pending.attackTimer;
+
+    if (wasPlaying && world.phase === 'gameOver') {
+      world.uiMode = { kind: 'alert' };
+      world.alertInfo = {
+        title: 'Game Over',
+        message: 'Your company has gone bankrupt!',
+        dismissable: false,
+      };
+    }
 
     this.pending = null;
   }
