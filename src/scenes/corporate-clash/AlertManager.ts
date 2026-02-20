@@ -1,4 +1,8 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH, type Renderer } from '../../engine/types.js';
+import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  type Renderer,
+} from '../../engine/types.js';
 import type { CorporateWorld, Manager } from './types.js';
 
 export class AlertManager implements Manager {

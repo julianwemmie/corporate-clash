@@ -5,12 +5,7 @@ export default defineConfig({
   plugins: [
     devServer({
       entry: 'src/server/index.ts',
-      exclude: [
-        /^\/$/,
-        /^\/src\/.*/,
-        /^\/@.*/,
-        /^\/node_modules\/.*/,
-      ],
+      exclude: [/^\/$/, /^\/src\/.*/, /^\/@.*/, /^\/node_modules\/.*/],
     }),
   ],
 });
