@@ -4,6 +4,8 @@ import { Container, Texture } from 'pixi.js';
 
 export const GRID_SIZE = 4;
 export const CELL_SIZE = 150;
+export const ISO_TILE_W = 150;
+export const ISO_TILE_H = 75;
 export const LEFT_PANEL_WIDTH = 200;
 export const RIGHT_PANEL_WIDTH = 200;
 export const CANVAS_HEIGHT = GRID_SIZE * CELL_SIZE; // 600px
@@ -45,7 +47,16 @@ export interface Renderer {
       anchorY?: number;
       width?: number;
       height?: number;
+      alpha?: number;
     },
+  ): void;
+  drawDiamond(
+    centerX: number,
+    centerY: number,
+    width: number,
+    height: number,
+    color: number,
+    options?: { alpha?: number },
   ): void;
   clear(): void;
   readonly stage: Container;

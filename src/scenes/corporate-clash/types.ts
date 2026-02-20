@@ -20,13 +20,13 @@ export const OFFICE_EMPLOYEE_HEALTH = 1;
 export type BuildingType =
   | 'smallOffice'
   | 'mediumOffice'
-  | 'skyscraper'
+  | 'largeOffice'
   | 'lawfirm';
 
 export const BUILDING_TYPES: BuildingType[] = [
   'smallOffice',
   'mediumOffice',
-  'skyscraper',
+  'largeOffice',
   'lawfirm',
 ];
 
@@ -50,8 +50,8 @@ export const BUILDING_CONFIG: Record<BuildingType, BuildingConfig> = {
     capacity: 20,
     color: 0x357abd,
   },
-  skyscraper: {
-    label: 'Skyscraper',
+  largeOffice: {
+    label: 'Large Office',
     cost: 400_000,
     capacity: 30,
     color: 0x1a5276,

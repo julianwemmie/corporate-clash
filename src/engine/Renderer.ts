@@ -34,6 +34,16 @@ export function createOffsetRenderer(
     drawSprite(texture, pixelX, pixelY, options) {
       inner.drawSprite(texture, pixelX + offsetX, pixelY + offsetY, options);
     },
+    drawDiamond(centerX, centerY, width, height, color, options) {
+      inner.drawDiamond(
+        centerX + offsetX,
+        centerY + offsetY,
+        width,
+        height,
+        color,
+        options,
+      );
+    },
     clear() {
       inner.clear();
     },
@@ -95,6 +105,7 @@ export class Renderer implements IRenderer {
       anchorY?: number;
       width?: number;
       height?: number;
+      alpha?: number;
     },
   ): void {
     const sprite = new Sprite(texture);
@@ -103,7 +114,33 @@ export class Renderer implements IRenderer {
     sprite.y = pixelY;
     sprite.width = options?.width ?? texture.width;
     sprite.height = options?.height ?? texture.height;
+    sprite.alpha = options?.alpha ?? 1;
     this.drawContainer.addChild(sprite);
+  }
+
+  drawDiamond(
+    centerX: number,
+    centerY: number,
+    width: number,
+    height: number,
+    color: number,
+    options?: { alpha?: number },
+  ): void {
+    const halfW = width / 2;
+    const halfH = height / 2;
+    const g = new Graphics();
+    g.poly([
+      centerX,
+      centerY - halfH,
+      centerX + halfW,
+      centerY,
+      centerX,
+      centerY + halfH,
+      centerX - halfW,
+      centerY,
+    ]);
+    g.fill({ color, alpha: options?.alpha ?? 1 });
+    this.drawContainer.addChild(g);
   }
 
   clear(): void {
