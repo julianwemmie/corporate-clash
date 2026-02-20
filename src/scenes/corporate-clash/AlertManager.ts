@@ -21,12 +21,11 @@ export class AlertManager implements Manager {
 
   render(world: CorporateWorld, renderer: Renderer): void {
     if (world.uiMode.kind !== 'alert') return;
-    renderer.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0xffffff, {
-      alpha: 0.3,
-    });
+
+    renderer.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0xffffff, { alpha: 0.3 });
 
     const alertWidth = 450;
-    const alertHeight = 200;
+    const alertHeight = 220;
     renderer.drawRect(
       CANVAS_WIDTH / 2 - alertWidth / 2,
       CANVAS_HEIGHT / 2 - alertHeight / 2,
@@ -36,26 +35,30 @@ export class AlertManager implements Manager {
       { alpha: 0.9 },
     );
 
-    const alertTitle = 'Attack!';
-    renderer.drawText(alertTitle, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 85, {
-      fontSize: 24,
-      color: 0xffffff,
-      anchor: 0.5,
+    const report = world.attackActive;
+    if (!report) return;
+
+    let title: string;
+    let message: string;
+
+    if (report.isAttacker) {
+      title = 'Attack Report';
+      message = `You attacked ${report.defender}! You lost ${report.employeesLost} employees. They lost ${report.buildingsLost} buildings.`;
+    } else {
+      title = 'Under Attack!';
+      message = `${report.attackerName} attacked you! You lost ${report.employeesLost} employees and ${report.buildingsLost} buildings.`;
+    }
+
+    renderer.drawText(title, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 85, {
+      fontSize: 24, color: 0xffffff, anchor: 0.5,
     });
 
-    const alertMessage = `You have been attacked by a rival company! Damage Report: Employees Lost ${world.attackActive?.employeesLost} Buildings Lost ${world.attackActive?.buildingsLost}`;
-    renderer.drawText(alertMessage, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10, {
-      fontSize: 14,
-      color: 0xffffff,
-      anchor: 0.5,
+    renderer.drawText(message, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10, {
+      fontSize: 14, color: 0xffffff, anchor: 0.5,
     });
 
-    const alertSubMessage = 'Space bar to continue...';
-    renderer.drawText(
-      alertSubMessage,
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2 + 60,
-      { fontSize: 12, color: 0xffffff, anchor: 0.5 },
-    );
+    renderer.drawText('Space bar to continue...', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 70, {
+      fontSize: 12, color: 0xffffff, anchor: 0.5,
+    });
   }
 }
