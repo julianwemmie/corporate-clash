@@ -33,6 +33,7 @@ Server stores: `Map<string, PlayerState>`
 ### Game Loop (150ms tick)
 
 For each player:
+
 1. Run `economyManager.update(player.world)`
 2. Decrement `attackCooldown` if > 0
 
@@ -57,6 +58,7 @@ Scoreboard gives enough info to pick targets without leaking full grids.
 ### Initiating an Attack
 
 Client sends:
+
 ```
 {
   kind: 'attack',
@@ -94,6 +96,7 @@ Attacker picks buildings and how many employees from each. Those employees are r
 ### Damage Reports
 
 Both players get an `attackActive` with expanded `DamageReport`:
+
 - Attacker sees: "You attacked [name]. Lost X employees. They lost Y employees, Z buildings."
 - Defender sees: "[name] attacked you. Lost Y employees, Z buildings."
 
@@ -105,11 +108,11 @@ Both players get an `attackActive` with expanded `DamageReport`:
 
 ### Endpoints
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/game/join` | POST | `{ name }` -> `{ playerId }` |
-| `/game/stream?playerId=xxx` | GET | SSE scoped to player |
-| `/game/action` | POST | All actions require `playerId` |
+| Endpoint                    | Method | Purpose                        |
+| --------------------------- | ------ | ------------------------------ |
+| `/game/join`                | POST   | `{ name }` -> `{ playerId }`   |
+| `/game/stream?playerId=xxx` | GET    | SSE scoped to player           |
+| `/game/action`              | POST   | All actions require `playerId` |
 
 ### GameAction (expanded)
 

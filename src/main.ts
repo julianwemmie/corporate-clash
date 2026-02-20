@@ -27,7 +27,11 @@ async function startGame(playerId: string) {
   appDiv.style.display = 'block';
 
   const app = new Application();
-  await app.init({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, background: 0x1a1a2e });
+  await app.init({
+    width: CANVAS_WIDTH,
+    height: CANVAS_HEIGHT,
+    background: 0x1a1a2e,
+  });
   appDiv.appendChild(app.canvas);
 
   const game = new Game(app);

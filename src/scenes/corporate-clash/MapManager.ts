@@ -93,7 +93,13 @@ export class MapManager implements Manager {
     if (!buildingType) return;
 
     const { row, col } = world.uiMode.tile;
-    this.sendAction({ kind: 'build', playerId: world.playerId, row, col, buildingType });
+    this.sendAction({
+      kind: 'build',
+      playerId: world.playerId,
+      row,
+      col,
+      buildingType,
+    });
   }
 
   private handleEmployeeKey(
@@ -121,7 +127,13 @@ export class MapManager implements Manager {
     if (!employeeType) return;
 
     const { row, col } = world.uiMode.tile;
-    this.sendAction({ kind: 'hire', playerId: world.playerId, row, col, employeeType });
+    this.sendAction({
+      kind: 'hire',
+      playerId: world.playerId,
+      row,
+      col,
+      employeeType,
+    });
   }
 
   private sendAction(action: GameAction): void {

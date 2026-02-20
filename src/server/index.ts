@@ -17,6 +17,9 @@ import { EconomyManager } from '../scenes/corporate-clash/EconomyManager.js';
 const TICK_RATE_MS = 150;
 const MAX_PLAYERS = 20;
 const ATTACK_COOLDOWN_TICKS = 100;
+const NPC_ATTACK_INTERVAL_TICKS = 200; // 30s at 150ms/tick (matches ATTACK_INTERVAL_TICKS in types.ts)
+const DEFENSE_BUFFER_TICKS = 400; // 60s immunity after being attacked
+const NPC_DAMAGE_PERCENT = 0.3;
 
 const app = new Hono();
 
@@ -30,6 +33,7 @@ interface PlayerState {
   world: CorporateWorld;
   client: SSEClient | null;
   attackCooldown: number;
+  defenseBuffer: number;
 }
 
 const players = new Map<string, PlayerState>();
@@ -74,6 +78,7 @@ function toGameState(player: PlayerState): GameState {
     attackActive,
     attackTimer,
     attackCooldown: player.attackCooldown,
+    defenseBuffer: player.defenseBuffer,
     players: scoreboard,
   };
 }
@@ -85,6 +90,57 @@ setInterval(() => {
   for (const player of players.values()) {
     economyManager.update(player.world);
     if (player.attackCooldown > 0) player.attackCooldown--;
+
+    // NPC periodic attacks
+    player.world.attackTimer--;
+    if (player.world.attackTimer <= 0) {
+      player.world.attackTimer = NPC_ATTACK_INTERVAL_TICKS;
+
+      // Only raid if player has no immunity and has employees
+      if (player.defenseBuffer <= 0) {
+        let totalEmployees = 0;
+        for (const row of player.world.grid) {
+          for (const tile of row) {
+            if (tile.building)
+              totalEmployees += tile.building.employees.length;
+          }
+        }
+
+        if (totalEmployees > 0) {
+          let toKill = Math.ceil(totalEmployees * NPC_DAMAGE_PERCENT);
+          const employeesLost = toKill;
+          let buildingsLost = 0;
+
+          for (const row of player.world.grid) {
+            for (const tile of row) {
+              if (!tile.building || toKill <= 0) continue;
+              const removable = Math.min(
+                toKill,
+                tile.building.employees.length,
+              );
+              tile.building.employees.splice(0, removable);
+              toKill -= removable;
+              if (tile.building.employees.length === 0) {
+                tile.building = null;
+                buildingsLost++;
+              }
+            }
+          }
+
+          player.world.attackActive = {
+            buildingsLost,
+            employeesLost,
+            attackerName: 'Corporate Raiders',
+            defender: null,
+            isAttacker: false,
+          };
+
+          player.defenseBuffer = DEFENSE_BUFFER_TICKS;
+        }
+      }
+    }
+
+    if (player.defenseBuffer > 0) player.defenseBuffer--;
   }
 
   for (const player of players.values()) {
@@ -126,6 +182,7 @@ app.post('/game/join', async (c) => {
     world,
     client: null,
     attackCooldown: 0,
+    defenseBuffer: 0,
   };
 
   players.set(playerId, player);
@@ -171,6 +228,8 @@ app.post('/game/action', async (c) => {
       return c.json({ error: 'cannot attack yourself' }, 400);
     if (player.attackCooldown > 0)
       return c.json({ error: 'attack on cooldown' }, 400);
+    if (target.defenseBuffer > 0)
+      return c.json({ error: 'target is under protection' }, 400);
     if (!action.troops || action.troops.length === 0)
       return c.json({ error: 'no troops selected' }, 400);
 
@@ -190,10 +249,7 @@ app.post('/game/action', async (c) => {
       if (!tile.building)
         return c.json({ error: `no building at (${tr},${tc})` }, 400);
       if (count < 1 || count > tile.building.employees.length) {
-        return c.json(
-          { error: `invalid troop count at (${tr},${tc})` },
-          400,
-        );
+        return c.json({ error: `invalid troop count at (${tr},${tc})` }, 400);
       }
       totalAttackers += count;
     }
@@ -269,6 +325,7 @@ app.post('/game/action', async (c) => {
     };
 
     player.attackCooldown = ATTACK_COOLDOWN_TICKS;
+    target.defenseBuffer = DEFENSE_BUFFER_TICKS;
 
     return c.json({ ok: true });
   }

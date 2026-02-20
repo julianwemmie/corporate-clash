@@ -17,6 +17,7 @@
 Convert the server from a single shared world to a `Map<string, PlayerState>`. Add `POST /game/join` endpoint and scope the game loop + SSE streams to individual players.
 
 **Files:**
+
 - Modify: `src/server/index.ts`
 - Modify: `src/scenes/corporate-clash/types.ts` (add `playerId` to `GameAction`)
 
@@ -26,9 +27,26 @@ In `src/scenes/corporate-clash/types.ts`, change the `GameAction` type:
 
 ```typescript
 export type GameAction =
-  | { kind: 'build'; playerId: string; row: number; col: number; buildingType: BuildingType }
-  | { kind: 'hire'; playerId: string; row: number; col: number; employeeType: EmployeeType }
-  | { kind: 'attack'; playerId: string; targetId: string; troops: AttackTroop[] };
+  | {
+      kind: 'build';
+      playerId: string;
+      row: number;
+      col: number;
+      buildingType: BuildingType;
+    }
+  | {
+      kind: 'hire';
+      playerId: string;
+      row: number;
+      col: number;
+      employeeType: EmployeeType;
+    }
+  | {
+      kind: 'attack';
+      playerId: string;
+      targetId: string;
+      troops: AttackTroop[];
+    };
 ```
 
 **Step 2: Rewrite `src/server/index.ts` for multi-player**
@@ -77,7 +95,8 @@ function generateId(): string {
 }
 
 function toGameState(player: PlayerState): GameState {
-  const { phase, funds, mapDefense, grid, attackActive, attackTimer } = player.world;
+  const { phase, funds, mapDefense, grid, attackActive, attackTimer } =
+    player.world;
   const scoreboard: PlayerInfo[] = [];
   for (const p of players.values()) {
     let buildingCount = 0;
@@ -141,7 +160,13 @@ app.post('/game/join', async (c) => {
   }
   const id = generateId();
   const world = createWorld(GRID_SIZE);
-  players.set(id, { id, name: trimmed, world, client: null, attackCooldown: 0 });
+  players.set(id, {
+    id,
+    name: trimmed,
+    world,
+    client: null,
+    attackCooldown: 0,
+  });
   return c.json({ playerId: id });
 });
 
@@ -163,23 +188,35 @@ app.post('/game/action', async (c) => {
   const { row, col } = action;
 
   if (action.kind === 'build') {
-    if (row < 0 || row >= player.world.grid.length || col < 0 || col >= player.world.grid[0].length) {
+    if (
+      row < 0 ||
+      row >= player.world.grid.length ||
+      col < 0 ||
+      col >= player.world.grid[0].length
+    ) {
       return c.json({ error: 'out of bounds' }, 400);
     }
     if (!BUILDING_TYPES.includes(action.buildingType)) {
       return c.json({ error: 'invalid building type' }, 400);
     }
     const tile = player.world.grid[row][col];
-    if (tile.building) return c.json({ error: 'tile already has a building' }, 400);
+    if (tile.building)
+      return c.json({ error: 'tile already has a building' }, 400);
     const config = BUILDING_CONFIG[action.buildingType];
-    if (player.world.funds < config.cost) return c.json({ error: 'insufficient funds' }, 400);
+    if (player.world.funds < config.cost)
+      return c.json({ error: 'insufficient funds' }, 400);
     player.world.funds -= config.cost;
     tile.building = { type: action.buildingType, employees: [] };
     return c.json({ ok: true });
   }
 
   if (action.kind === 'hire') {
-    if (row < 0 || row >= player.world.grid.length || col < 0 || col >= player.world.grid[0].length) {
+    if (
+      row < 0 ||
+      row >= player.world.grid.length ||
+      col < 0 ||
+      col >= player.world.grid[0].length
+    ) {
       return c.json({ error: 'out of bounds' }, 400);
     }
     if (!EMPLOYEE_TYPES.includes(action.employeeType)) {
@@ -189,8 +226,10 @@ app.post('/game/action', async (c) => {
     if (!tile.building) return c.json({ error: 'no building on tile' }, 400);
     const config = EMPLOYEE_CONFIG[action.employeeType];
     const capacity = BUILDING_CONFIG[tile.building.type].capacity;
-    if (tile.building.employees.length >= capacity) return c.json({ error: 'building at capacity' }, 400);
-    if (player.world.funds < config.cost) return c.json({ error: 'insufficient funds' }, 400);
+    if (tile.building.employees.length >= capacity)
+      return c.json({ error: 'building at capacity' }, 400);
+    if (player.world.funds < config.cost)
+      return c.json({ error: 'insufficient funds' }, 400);
     player.world.funds -= config.cost;
     tile.building.employees.push({ type: action.employeeType });
     return c.json({ ok: true });
@@ -220,10 +259,16 @@ app.get('/game/stream', (c) => {
     });
 
     while (true) {
-      const tick = await new Promise<{ data: string; id: number }>((resolve) => {
-        client.resolve = resolve;
+      const tick = await new Promise<{ data: string; id: number }>(
+        (resolve) => {
+          client.resolve = resolve;
+        },
+      );
+      await stream.writeSSE({
+        data: tick.data,
+        event: 'tick',
+        id: String(tick.id),
       });
-      await stream.writeSSE({ data: tick.data, event: 'tick', id: String(tick.id) });
     }
   });
 });
@@ -270,6 +315,7 @@ git commit -m "feat: multi-player server with per-player worlds and join endpoin
 Add a join screen where the player enters a name. Store the `playerId` and pass it to NetworkManager for scoped SSE + scoped actions.
 
 **Files:**
+
 - Modify: `index.html` (add join form HTML)
 - Modify: `src/main.ts` (show join form, boot game after join)
 - Modify: `src/scenes/corporate-clash/NetworkManager.ts` (accept playerId, connect to scoped SSE)
@@ -281,15 +327,28 @@ Add a join screen where the player enters a name. Store the `playerId` and pass 
 Add a `<div id="join">` with a text input and button, hidden by default alongside `#app`:
 
 ```html
-<div id="join" style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+<div
+  id="join"
+  style="display: flex; flex-direction: column; align-items: center; gap: 12px;"
+>
   <h1 style="color: #fff; font-family: monospace;">Corporate Clash</h1>
-  <input id="name-input" type="text" placeholder="Enter your name" maxlength="20"
-    style="padding: 8px 12px; font-size: 16px; border-radius: 4px; border: none; width: 200px;" />
-  <button id="join-btn"
-    style="padding: 8px 24px; font-size: 16px; border-radius: 4px; border: none; cursor: pointer; background: #4a90d9; color: #fff;">
+  <input
+    id="name-input"
+    type="text"
+    placeholder="Enter your name"
+    maxlength="20"
+    style="padding: 8px 12px; font-size: 16px; border-radius: 4px; border: none; width: 200px;"
+  />
+  <button
+    id="join-btn"
+    style="padding: 8px 24px; font-size: 16px; border-radius: 4px; border: none; cursor: pointer; background: #4a90d9; color: #fff;"
+  >
     Join Game
   </button>
-  <div id="join-error" style="color: #e74c3c; font-family: monospace; font-size: 14px;"></div>
+  <div
+    id="join-error"
+    style="color: #e74c3c; font-family: monospace; font-size: 14px;"
+  ></div>
 </div>
 <div id="app" style="display: none;"></div>
 ```
@@ -328,7 +387,11 @@ async function startGame(playerId: string) {
   appDiv.style.display = 'block';
 
   const app = new Application();
-  await app.init({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, background: 0x1a1a2e });
+  await app.init({
+    width: CANVAS_WIDTH,
+    height: CANVAS_HEIGHT,
+    background: 0x1a1a2e,
+  });
   appDiv.appendChild(app.canvas);
 
   const game = new Game(app);
@@ -415,9 +478,10 @@ export class NetworkManager implements Manager {
 The MapManager needs access to playerId. Pass it from the scene or store on the world. Simplest: add `playerId` to `CorporateWorld`:
 
 In `src/scenes/corporate-clash/types.ts`, add to `CorporateWorld`:
+
 ```typescript
 export interface CorporateWorld extends GameState {
-  playerId: string;  // add this
+  playerId: string; // add this
   selectedTile: GridPos | null;
   uiMode: UIMode;
   hoveredTile: GridPos | null;
@@ -459,6 +523,7 @@ git commit -m "feat: add join screen and player identity for multiplayer"
 Implement the `attack` action handler on the server. Attacker selects troops from their buildings, server resolves combat against the target, both players get damage reports.
 
 **Files:**
+
 - Modify: `src/server/index.ts` (replace attack stub with full resolution)
 
 **Step 1: Implement attack handler**
@@ -469,19 +534,28 @@ Replace the `action.kind === 'attack'` stub in `src/server/index.ts`:
 if (action.kind === 'attack') {
   const target = players.get(action.targetId);
   if (!target) return c.json({ error: 'target not found' }, 400);
-  if (action.targetId === action.playerId) return c.json({ error: 'cannot attack yourself' }, 400);
-  if (player.attackCooldown > 0) return c.json({ error: 'attack on cooldown' }, 400);
-  if (!action.troops || action.troops.length === 0) return c.json({ error: 'no troops selected' }, 400);
+  if (action.targetId === action.playerId)
+    return c.json({ error: 'cannot attack yourself' }, 400);
+  if (player.attackCooldown > 0)
+    return c.json({ error: 'attack on cooldown' }, 400);
+  if (!action.troops || action.troops.length === 0)
+    return c.json({ error: 'no troops selected' }, 400);
 
   // Validate and remove troops from attacker's buildings
   let totalAttackers = 0;
   for (const troop of action.troops) {
     const { row: tr, col: tc, count } = troop;
-    if (tr < 0 || tr >= player.world.grid.length || tc < 0 || tc >= player.world.grid[0].length) {
+    if (
+      tr < 0 ||
+      tr >= player.world.grid.length ||
+      tc < 0 ||
+      tc >= player.world.grid[0].length
+    ) {
       return c.json({ error: 'troop source out of bounds' }, 400);
     }
     const tile = player.world.grid[tr][tc];
-    if (!tile.building) return c.json({ error: `no building at (${tr},${tc})` }, 400);
+    if (!tile.building)
+      return c.json({ error: `no building at (${tr},${tc})` }, 400);
     if (count < 1 || count > tile.building.employees.length) {
       return c.json({ error: `invalid troop count at (${tr},${tc})` }, 400);
     }
@@ -526,7 +600,10 @@ if (action.kind === 'attack') {
   for (const row of target.world.grid) {
     for (const tile of row) {
       if (!tile.building || defenderLosses <= 0) continue;
-      const removable = Math.min(defenderLosses, tile.building.employees.length);
+      const removable = Math.min(
+        defenderLosses,
+        tile.building.employees.length,
+      );
       tile.building.employees.splice(0, removable);
       defenderLosses -= removable;
       if (tile.building.employees.length === 0) {
@@ -609,6 +686,7 @@ git commit -m "feat: add RISK-style combat resolution for player attacks"
 Add an `AttackPanelManager` that lets the player view the scoreboard, pick a target, select troops from their buildings, and send the attack action.
 
 **Files:**
+
 - Create: `src/scenes/corporate-clash/AttackPanelManager.ts`
 - Modify: `src/scenes/corporate-clash/CorporateClashScene.ts` (register new manager)
 - Modify: `src/scenes/corporate-clash/types.ts` (expand `attackPanel` UIMode with state)
@@ -628,7 +706,12 @@ This tracks which target is selected and which troops have been assigned.
 ```typescript
 import type { Renderer } from '../../engine/types.js';
 import { CANVAS_HEIGHT, RIGHT_PANEL_WIDTH } from '../../engine/types.js';
-import type { CorporateWorld, Manager, AttackTroop, GameAction } from './types.js';
+import type {
+  CorporateWorld,
+  Manager,
+  AttackTroop,
+  GameAction,
+} from './types.js';
 
 const PANEL_X = 10;
 const LINE_HEIGHT = 22;
@@ -677,12 +760,20 @@ export class AttackPanelManager implements Manager {
     }
     const tile = buildingTiles[index];
     if (tile) {
-      const existing = troops.find((t) => t.row === tile.row && t.col === tile.col);
+      const existing = troops.find(
+        (t) => t.row === tile.row && t.col === tile.col,
+      );
       const currentCount = existing ? existing.count : 0;
       const maxCount = tile.building!.employees.length;
       if (currentCount < maxCount) {
-        const newTroops = troops.filter((t) => !(t.row === tile.row && t.col === tile.col));
-        newTroops.push({ row: tile.row, col: tile.col, count: currentCount + 1 });
+        const newTroops = troops.filter(
+          (t) => !(t.row === tile.row && t.col === tile.col),
+        );
+        newTroops.push({
+          row: tile.row,
+          col: tile.col,
+          count: currentCount + 1,
+        });
         world.uiMode = { kind: 'attackPanel', targetId, troops: newTroops };
       }
     }
@@ -712,40 +803,63 @@ export class AttackPanelManager implements Manager {
     const { targetId, troops } = world.uiMode;
     let y = 10;
 
-    renderer.drawText('Attack', PANEL_X, y, { fontSize: HEADER_SIZE, color: 0xe74c3c });
+    renderer.drawText('Attack', PANEL_X, y, {
+      fontSize: HEADER_SIZE,
+      color: 0xe74c3c,
+    });
     y += LINE_HEIGHT + 10;
 
     if (world.attackCooldown > 0) {
       renderer.drawText(`Cooldown: ${world.attackCooldown} ticks`, PANEL_X, y, {
-        fontSize: OPTION_SIZE, color: DIM,
+        fontSize: OPTION_SIZE,
+        color: DIM,
       });
       y += LINE_HEIGHT;
-      renderer.drawText('[ESC] Close', PANEL_X, y, { fontSize: OPTION_SIZE, color: 0xaaaaaa });
+      renderer.drawText('[ESC] Close', PANEL_X, y, {
+        fontSize: OPTION_SIZE,
+        color: 0xaaaaaa,
+      });
       return;
     }
 
     // Phase 1: Pick target
     if (!targetId) {
-      renderer.drawText('Pick target:', PANEL_X, y, { fontSize: OPTION_SIZE, color: 0xaaaaaa });
+      renderer.drawText('Pick target:', PANEL_X, y, {
+        fontSize: OPTION_SIZE,
+        color: 0xaaaaaa,
+      });
       y += LINE_HEIGHT;
       const otherPlayers = world.players.filter((p) => p.id !== world.playerId);
       otherPlayers.forEach((p, i) => {
-        renderer.drawText(`[${i + 1}] ${p.name}`, PANEL_X, y, { fontSize: OPTION_SIZE, color: BRIGHT });
-        y += LINE_HEIGHT - 4;
-        renderer.drawText(`    $${p.funds.toLocaleString()} | ${p.employeeCount} emp`, PANEL_X, y, {
-          fontSize: OPTION_SIZE - 2, color: 0xaaaaaa,
+        renderer.drawText(`[${i + 1}] ${p.name}`, PANEL_X, y, {
+          fontSize: OPTION_SIZE,
+          color: BRIGHT,
         });
+        y += LINE_HEIGHT - 4;
+        renderer.drawText(
+          `    $${p.funds.toLocaleString()} | ${p.employeeCount} emp`,
+          PANEL_X,
+          y,
+          {
+            fontSize: OPTION_SIZE - 2,
+            color: 0xaaaaaa,
+          },
+        );
         y += LINE_HEIGHT;
       });
     } else {
       // Phase 2: Pick troops
       const target = world.players.find((p) => p.id === targetId);
       renderer.drawText(`Target: ${target?.name ?? '???'}`, PANEL_X, y, {
-        fontSize: OPTION_SIZE, color: 0xe74c3c,
+        fontSize: OPTION_SIZE,
+        color: 0xe74c3c,
       });
       y += LINE_HEIGHT + 4;
 
-      renderer.drawText('Send troops from:', PANEL_X, y, { fontSize: OPTION_SIZE, color: 0xaaaaaa });
+      renderer.drawText('Send troops from:', PANEL_X, y, {
+        fontSize: OPTION_SIZE,
+        color: 0xaaaaaa,
+      });
       y += LINE_HEIGHT;
 
       const buildingTiles = [];
@@ -758,12 +872,16 @@ export class AttackPanelManager implements Manager {
       }
 
       buildingTiles.forEach((tile, i) => {
-        const assigned = troops.find((t) => t.row === tile.row && t.col === tile.col);
+        const assigned = troops.find(
+          (t) => t.row === tile.row && t.col === tile.col,
+        );
         const count = assigned ? assigned.count : 0;
         const max = tile.building!.employees.length;
         renderer.drawText(
           `[${i + 1}] (${tile.row},${tile.col}) ${count}/${max}`,
-          PANEL_X, y, { fontSize: OPTION_SIZE, color: BRIGHT },
+          PANEL_X,
+          y,
+          { fontSize: OPTION_SIZE, color: BRIGHT },
         );
         y += LINE_HEIGHT;
       });
@@ -771,19 +889,24 @@ export class AttackPanelManager implements Manager {
       const totalTroops = troops.reduce((sum, t) => sum + t.count, 0);
       y += 4;
       renderer.drawText(`Total: ${totalTroops} troops`, PANEL_X, y, {
-        fontSize: OPTION_SIZE, color: 0xe74c3c,
+        fontSize: OPTION_SIZE,
+        color: 0xe74c3c,
       });
       y += LINE_HEIGHT + 4;
 
       if (totalTroops > 0) {
         renderer.drawText('[ENTER] Launch Attack', PANEL_X, y, {
-          fontSize: OPTION_SIZE, color: 0x2ecc71,
+          fontSize: OPTION_SIZE,
+          color: 0x2ecc71,
         });
         y += LINE_HEIGHT;
       }
     }
 
-    renderer.drawText('[ESC] Close', PANEL_X, y + 4, { fontSize: OPTION_SIZE, color: 0xaaaaaa });
+    renderer.drawText('[ESC] Close', PANEL_X, y + 4, {
+      fontSize: OPTION_SIZE,
+      color: 0xaaaaaa,
+    });
   }
 }
 ```
@@ -825,6 +948,7 @@ git commit -m "feat: add attack panel UI for selecting targets and troops"
 Update the alert modal to show who attacked whom, with different messages for attacker vs defender.
 
 **Files:**
+
 - Modify: `src/scenes/corporate-clash/AlertManager.ts`
 
 **Step 1: Update render method**
@@ -895,6 +1019,7 @@ git commit -m "feat: update alert modal for multiplayer attack/defense reports"
 The timer-based random `AttackManager` is no longer needed. Remove it from the server. Update the LeftPanelManager to show attack cooldown instead of attack timer, and show a player count.
 
 **Files:**
+
 - Modify: `src/server/index.ts` (remove AttackManager import and usage)
 - Modify: `src/scenes/corporate-clash/LeftPanelManager.ts` (show cooldown + player count)
 
@@ -915,10 +1040,15 @@ renderer.drawText(`Players: ${world.players.length}`, 10, 136, {
 
 if (world.attackCooldown > 0) {
   const cooldownSecs = Math.ceil(world.attackCooldown * TICK_RATE_S);
-  renderer.drawText(`Attack cooldown: ${cooldownSecs}s`, 10, CANVAS_HEIGHT - 44, {
-    fontSize: 14,
-    color: 0xe74c3c,
-  });
+  renderer.drawText(
+    `Attack cooldown: ${cooldownSecs}s`,
+    10,
+    CANVAS_HEIGHT - 44,
+    {
+      fontSize: 14,
+      color: 0xe74c3c,
+    },
+  );
 }
 
 renderer.drawText('[A] Attack', 10, CANVAS_HEIGHT - 24, {

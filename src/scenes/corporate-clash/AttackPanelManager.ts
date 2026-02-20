@@ -49,12 +49,20 @@ export class AttackPanelManager implements Manager {
     }
     const tile = buildingTiles[index];
     if (tile) {
-      const existing = troops.find((t) => t.row === tile.row && t.col === tile.col);
+      const existing = troops.find(
+        (t) => t.row === tile.row && t.col === tile.col,
+      );
       const currentCount = existing ? existing.count : 0;
       const maxCount = tile.building!.employees.length;
       if (currentCount < maxCount) {
-        const newTroops = troops.filter((t) => !(t.row === tile.row && t.col === tile.col));
-        newTroops.push({ row: tile.row, col: tile.col, count: currentCount + 1 });
+        const newTroops = troops.filter(
+          (t) => !(t.row === tile.row && t.col === tile.col),
+        );
+        newTroops.push({
+          row: tile.row,
+          col: tile.col,
+          count: currentCount + 1,
+        });
         world.uiMode = { kind: 'attackPanel', targetId, troops: newTroops };
       }
     }
@@ -84,7 +92,10 @@ export class AttackPanelManager implements Manager {
     const { targetId, troops } = world.uiMode;
     let y = 10;
 
-    renderer.drawText('Attack', PANEL_X, y, { fontSize: HEADER_SIZE, color: 0xe74c3c });
+    renderer.drawText('Attack', PANEL_X, y, {
+      fontSize: HEADER_SIZE,
+      color: 0xe74c3c,
+    });
     y += LINE_HEIGHT + 10;
 
     if (world.attackCooldown > 0) {
@@ -93,13 +104,19 @@ export class AttackPanelManager implements Manager {
         color: DIM,
       });
       y += LINE_HEIGHT;
-      renderer.drawText('[ESC] Close', PANEL_X, y, { fontSize: OPTION_SIZE, color: 0xaaaaaa });
+      renderer.drawText('[ESC] Close', PANEL_X, y, {
+        fontSize: OPTION_SIZE,
+        color: 0xaaaaaa,
+      });
       return;
     }
 
     // Phase 1: Pick target
     if (!targetId) {
-      renderer.drawText('Pick target:', PANEL_X, y, { fontSize: OPTION_SIZE, color: 0xaaaaaa });
+      renderer.drawText('Pick target:', PANEL_X, y, {
+        fontSize: OPTION_SIZE,
+        color: 0xaaaaaa,
+      });
       y += LINE_HEIGHT;
       const otherPlayers = world.players.filter((p) => p.id !== world.playerId);
       otherPlayers.forEach((p, i) => {
@@ -108,10 +125,15 @@ export class AttackPanelManager implements Manager {
           color: BRIGHT,
         });
         y += LINE_HEIGHT - 4;
-        renderer.drawText(`    $${p.funds.toLocaleString()} | ${p.employeeCount} emp`, PANEL_X, y, {
-          fontSize: OPTION_SIZE - 2,
-          color: 0xaaaaaa,
-        });
+        renderer.drawText(
+          `    $${p.funds.toLocaleString()} | ${p.employeeCount} emp`,
+          PANEL_X,
+          y,
+          {
+            fontSize: OPTION_SIZE - 2,
+            color: 0xaaaaaa,
+          },
+        );
         y += LINE_HEIGHT;
       });
     } else {
@@ -123,7 +145,10 @@ export class AttackPanelManager implements Manager {
       });
       y += LINE_HEIGHT + 4;
 
-      renderer.drawText('Send troops from:', PANEL_X, y, { fontSize: OPTION_SIZE, color: 0xaaaaaa });
+      renderer.drawText('Send troops from:', PANEL_X, y, {
+        fontSize: OPTION_SIZE,
+        color: 0xaaaaaa,
+      });
       y += LINE_HEIGHT;
 
       const buildingTiles = [];
@@ -136,7 +161,9 @@ export class AttackPanelManager implements Manager {
       }
 
       buildingTiles.forEach((tile, i) => {
-        const assigned = troops.find((t) => t.row === tile.row && t.col === tile.col);
+        const assigned = troops.find(
+          (t) => t.row === tile.row && t.col === tile.col,
+        );
         const count = assigned ? assigned.count : 0;
         const max = tile.building!.employees.length;
         renderer.drawText(
@@ -165,6 +192,9 @@ export class AttackPanelManager implements Manager {
       }
     }
 
-    renderer.drawText('[ESC] Close', PANEL_X, y + 4, { fontSize: OPTION_SIZE, color: 0xaaaaaa });
+    renderer.drawText('[ESC] Close', PANEL_X, y + 4, {
+      fontSize: OPTION_SIZE,
+      color: 0xaaaaaa,
+    });
   }
 }

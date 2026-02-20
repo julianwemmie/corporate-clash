@@ -271,6 +271,7 @@ export interface GameState {
   attackActive: DamageReport | null;
   attackTimer: number;
   attackCooldown: number;
+  defenseBuffer: number;
   players: PlayerInfo[];
 }
 
@@ -310,6 +311,7 @@ export function createWorld(
     attackActive: null,
     attackTimer: ATTACK_INTERVAL_TICKS,
     attackCooldown: 0,
+    defenseBuffer: 0,
     players: [],
   };
 }
