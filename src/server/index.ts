@@ -506,7 +506,8 @@ app.post('/game/action', async (c) => {
       return c.json({ error: 'building cannot be upgraded' }, 400);
     }
     const cost = Math.floor(
-      (BUILDING_CONFIG[nextType].cost - BUILDING_CONFIG[tile.building.type].cost) *
+      (BUILDING_CONFIG[nextType].cost -
+        BUILDING_CONFIG[tile.building.type].cost) *
         UPGRADE_COST_FACTOR,
     );
     if (world.funds < cost) {

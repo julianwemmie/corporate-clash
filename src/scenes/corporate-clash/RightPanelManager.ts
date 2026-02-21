@@ -103,12 +103,10 @@ export class RightPanelManager implements Manager {
     y += LINE_HEIGHT;
 
     // Sell
-    renderer.drawText(
-      `[S] Sell ($${sellValue.toLocaleString()})`,
-      PANEL_X,
-      y,
-      { fontSize: OPTION_SIZE, color: BRIGHT },
-    );
+    renderer.drawText(`[S] Sell ($${sellValue.toLocaleString()})`, PANEL_X, y, {
+      fontSize: OPTION_SIZE,
+      color: BRIGHT,
+    });
     y += LINE_HEIGHT;
 
     // Upgrade
@@ -173,10 +171,7 @@ export class RightPanelManager implements Manager {
     });
   }
 
-  private renderConfirmPanel(
-    world: CorporateWorld,
-    renderer: Renderer,
-  ): void {
+  private renderConfirmPanel(world: CorporateWorld, renderer: Renderer): void {
     if (world.uiMode.kind !== 'confirm') return;
 
     let y = 10;

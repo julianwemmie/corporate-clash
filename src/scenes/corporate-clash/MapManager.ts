@@ -103,7 +103,11 @@ export class MapManager implements Manager {
   }
 
   onMouseMove(world: CorporateWorld, pixelX: number, pixelY: number): void {
-    if (world.uiMode.kind === 'alert' || world.uiMode.kind === 'attackPanel' || world.uiMode.kind === 'confirm')
+    if (
+      world.uiMode.kind === 'alert' ||
+      world.uiMode.kind === 'attackPanel' ||
+      world.uiMode.kind === 'confirm'
+    )
       return;
     const gridPos = this.pixelToGrid(pixelX, pixelY);
     world.hoveredTile = gridPos;

@@ -232,7 +232,13 @@ export type UIMode =
   | { kind: 'none' }
   | { kind: 'buildingPanel'; tile: GridPos }
   | { kind: 'buildingDetailPanel'; tile: GridPos }
-  | { kind: 'confirm'; message: string; detail: string; action: GameAction; returnMode: UIMode }
+  | {
+      kind: 'confirm';
+      message: string;
+      detail: string;
+      action: GameAction;
+      returnMode: UIMode;
+    }
   | { kind: 'alert' }
   | { kind: 'attackPanel'; targetId: string | null; troops: AttackTroop[] };
 
