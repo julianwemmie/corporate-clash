@@ -77,7 +77,8 @@ export type OfficeEmployeeType =
   | 'officeWorker'
   | 'staff'
   | 'engineer'
-  | 'marketing';
+  | 'marketing'
+  | 'humanResources';
 
 export type LawfirmEmployeeType =
   | 'juniorLawyer'
@@ -129,6 +130,14 @@ export const OFFICE_EMPLOYEE_CONFIG: Record<
     health: 1,
     defenseBoost: 0,
   },
+  humanResources: {
+    label: 'Human Resources',
+    cost: 50_000,
+    profitPerTick: -10_000,
+    color: 0x8e44ad,
+    health: 100,
+    defenseBoost: 0,
+  },
 };
 
 export const OFFICE_EMPLOYEE_TYPES: OfficeEmployeeType[] = [
@@ -136,6 +145,7 @@ export const OFFICE_EMPLOYEE_TYPES: OfficeEmployeeType[] = [
   'staff',
   'marketing',
   'engineer',
+  'humanResources',
 ];
 
 export const LAWFIRM_EMPLOYEE_CONFIG: Record<
