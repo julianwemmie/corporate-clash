@@ -359,6 +359,155 @@ setInterval(() => {
   }
 }, TICK_RATE_MS);
 
+// GET /admin — admin dashboard
+app.get('/admin', (c) => {
+  return c.html(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corporate Clash Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #eee; padding: 2rem; }
+    h1 { margin-bottom: 1.5rem; color: #e94560; }
+    .player-list { display: flex; flex-direction: column; gap: 0.75rem; max-width: 600px; }
+    .player-card {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 1rem;
+    }
+    .player-info { display: flex; flex-direction: column; gap: 0.25rem; }
+    .player-name { font-weight: 600; font-size: 1.1rem; }
+    .player-detail { font-size: 0.85rem; color: #aaa; }
+    .remove-btn {
+      background: #e94560; color: white; border: none; border-radius: 6px;
+      padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem;
+    }
+    .remove-btn:hover { background: #c73650; }
+    .remove-all-btn {
+      background: #e94560; color: white; border: none; border-radius: 6px;
+      padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem; margin-bottom: 1rem;
+    }
+    .remove-all-btn:hover { background: #c73650; }
+    .empty { color: #888; font-style: italic; }
+    .status { margin-bottom: 1rem; padding: 0.75rem; border-radius: 6px; display: none; }
+    .status.success { display: block; background: #0f3460; color: #4ecca3; }
+    .status.error { display: block; background: #3a0a0a; color: #e94560; }
+  </style>
+</head>
+<body>
+  <h1>Corporate Clash Admin</h1>
+  <div id="status" class="status"></div>
+  <button id="remove-all" class="remove-all-btn" style="display:none" onclick="removeAll()">Remove All</button>
+  <div id="players" class="player-list"><span class="empty">Loading...</span></div>
+  <script>
+    async function loadPlayers() {
+      const res = await fetch('/admin/players');
+      const data = await res.json();
+      const container = document.getElementById('players');
+      document.getElementById('remove-all').style.display = data.length > 0 ? 'inline-block' : 'none';
+      if (data.length === 0) {
+        container.innerHTML = '<span class="empty">No players connected.</span>';
+        return;
+      }
+      container.innerHTML = data.map(p => \`
+        <div class="player-card" id="player-\${p.id}">
+          <div class="player-info">
+            <span class="player-name">\${p.name}</span>
+            <span class="player-detail">ID: \${p.id} &middot; Funds: $\${p.funds.toLocaleString()} &middot; Buildings: \${p.buildings} &middot; Employees: \${p.employees}</span>
+          </div>
+          <button class="remove-btn" onclick="removePlayer('\${p.id}', '\${p.name}')">Remove</button>
+        </div>
+      \`).join('');
+    }
+
+    async function removeAll() {
+      if (!confirm('Remove ALL players?')) return;
+      const res = await fetch('/admin/remove-all', { method: 'POST' });
+      const data = await res.json();
+      const status = document.getElementById('status');
+      if (res.ok) {
+        status.className = 'status success';
+        status.textContent = 'Removed ' + data.removed + ' player(s)';
+      } else {
+        status.className = 'status error';
+        status.textContent = data.error || 'Failed to remove players';
+      }
+      loadPlayers();
+    }
+
+    async function removePlayer(id, name) {
+      if (!confirm('Remove player ' + name + '?')) return;
+      const res = await fetch('/admin/remove-player', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: id }),
+      });
+      const data = await res.json();
+      const status = document.getElementById('status');
+      if (res.ok) {
+        status.className = 'status success';
+        status.textContent = 'Removed ' + name;
+      } else {
+        status.className = 'status error';
+        status.textContent = data.error || 'Failed to remove player';
+      }
+      loadPlayers();
+    }
+
+    loadPlayers();
+    setInterval(loadPlayers, 3000);
+  </script>
+</body>
+</html>`);
+});
+
+// GET /admin/players — list all players
+app.get('/admin/players', (c) => {
+  const list = [];
+  for (const p of players.values()) {
+    let buildings = 0;
+    let employees = 0;
+    for (const row of p.world.grid) {
+      for (const tile of row) {
+        if (tile.building) {
+          buildings++;
+          employees += tile.building.employees.length;
+        }
+      }
+    }
+    list.push({
+      id: p.id,
+      name: p.name,
+      funds: p.world.funds,
+      buildings,
+      employees,
+    });
+  }
+  return c.json(list);
+});
+
+// POST /admin/remove-all — remove all players
+app.post('/admin/remove-all', (c) => {
+  const count = players.size;
+  players.clear();
+  return c.json({ ok: true, removed: count });
+});
+
+// POST /admin/remove-player — remove a player
+app.post('/admin/remove-player', async (c) => {
+  const body = await c.req.json<{ playerId: string }>();
+  if (!body.playerId) {
+    return c.json({ error: 'playerId is required' }, 400);
+  }
+  const player = players.get(body.playerId);
+  if (!player) {
+    return c.json({ error: 'player not found' }, 404);
+  }
+  players.delete(body.playerId);
+  return c.json({ ok: true });
+});
+
 // POST /game/join — register a new player
 app.post('/game/join', async (c) => {
   const body = await c.req.json<{ name?: string }>();
