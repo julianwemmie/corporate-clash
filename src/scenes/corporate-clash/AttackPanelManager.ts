@@ -13,7 +13,12 @@ export class AttackPanelManager implements Manager {
   onKeyDown(world: CorporateWorld, key: string): void {
     if (world.uiMode.kind !== 'attackPanel') {
       // 'A' key opens attack panel from default mode
-      if (key === 'KeyA' && world.uiMode.kind !== 'alert' && world.uiMode.kind !== 'confirm' && world.uiMode.kind !== 'attackPanel') {
+      if (
+        key === 'KeyA' &&
+        world.uiMode.kind !== 'alert' &&
+        world.uiMode.kind !== 'confirm' &&
+        world.uiMode.kind !== 'attackPanel'
+      ) {
         world.uiMode = { kind: 'attackPanel', targetId: null, troops: [] };
       }
       return;
