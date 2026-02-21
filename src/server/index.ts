@@ -476,7 +476,13 @@ app.get('/admin/players', (c) => {
         }
       }
     }
-    list.push({ id: p.id, name: p.name, funds: p.world.funds, buildings, employees });
+    list.push({
+      id: p.id,
+      name: p.name,
+      funds: p.world.funds,
+      buildings,
+      employees,
+    });
   }
   return c.json(list);
 });
