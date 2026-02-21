@@ -151,6 +151,8 @@ export class Renderer implements IRenderer {
   }
 
   clear(): void {
-    this.drawContainer.removeChildren();
+    for (const child of this.drawContainer.removeChildren()) {
+      child.destroy();
+    }
   }
 }
