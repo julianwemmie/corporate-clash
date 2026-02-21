@@ -38,6 +38,7 @@ interface PlayerState {
   client: SSEClient | null;
   attackCooldown: number;
   defenseBuffer: number;
+  eventQueue: EventConfig[];
 }
 
 const EVENTS: EventConfig[] = [
@@ -255,14 +256,19 @@ const EVENTS: EventConfig[] = [
   },
 ];
 
-function pickWeightedEvent(): EventConfig {
-  const totalWeight = EVENTS.reduce((sum, e) => sum + e.weight, 0);
-  let roll = Math.random() * totalWeight;
-  for (const event of EVENTS) {
-    roll -= event.weight;
-    if (roll <= 0) return event;
+function shuffleArray<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return EVENTS[0];
+  return arr;
+}
+
+function pickEvent(player: PlayerState): EventConfig {
+  if (player.eventQueue.length === 0) {
+    player.eventQueue = shuffleArray([...EVENTS]);
+  }
+  return player.eventQueue.pop()!;
 }
 const players = new Map<string, PlayerState>();
 const economyManager = new EconomyManager();
@@ -334,7 +340,7 @@ setInterval(() => {
       player.world.eventTimer = EVENT_INTERVAL_TICKS;
 
       if (player.defenseBuffer <= 0) {
-        const event = pickWeightedEvent();
+        const event = pickEvent(player);
         player.world.eventResult = event.effect(player.world);
         player.defenseBuffer = DEFENSE_BUFFER_TICKS;
       }
@@ -384,6 +390,7 @@ app.post('/game/join', async (c) => {
     client: null,
     attackCooldown: 0,
     defenseBuffer: 0,
+    eventQueue: shuffleArray([...EVENTS]),
   };
 
   players.set(playerId, player);
