@@ -11,8 +11,10 @@ import {
   CANVAS_HEIGHT,
 } from '../../engine/types.js';
 import {
+  BUILDING_CONFIG,
   BUILDING_TYPES,
-  type EmployeeBuildingType,
+  UPGRADE_PATH,
+  SELL_PERCENTAGE,
   OFFICE_EMPLOYEE_TYPES,
   LAWFIRM_EMPLOYEE_TYPES,
   type CorporateWorld,
@@ -100,32 +102,12 @@ export class MapManager implements Manager {
     console.log('Right click at', { pixelX, pixelY }, gridPos);
   }
 
-  onLeftClick(world: CorporateWorld, pixelX: number, pixelY: number): void {
-    const gridPos = this.pixelToGrid(pixelX, pixelY);
-    if (!this.isInBounds(world, gridPos)) {
-      world.selectedTile = null;
-      world.uiMode = { kind: 'none' };
-      return;
-    }
-
-    const sel = world.selectedTile;
-    if (sel && sel.row === gridPos.row && sel.col === gridPos.col) {
-      world.selectedTile = null;
-      return;
-    }
-
-    world.selectedTile = gridPos;
-    this.syncPanelToTile(world, gridPos);
-  }
-
   onMouseMove(world: CorporateWorld, pixelX: number, pixelY: number): void {
-    if (world.uiMode.kind === 'alert' || world.uiMode.kind === 'attackPanel')
+    if (world.uiMode.kind === 'alert' || world.uiMode.kind === 'attackPanel' || world.uiMode.kind === 'confirm')
       return;
     const gridPos = this.pixelToGrid(pixelX, pixelY);
     world.hoveredTile = gridPos;
-    if (!world.selectedTile) {
-      this.syncPanelToTile(world, gridPos);
-    }
+    this.syncPanelToTile(world, gridPos);
   }
 
   private syncPanelToTile(world: CorporateWorld, gridPos: GridPos): void {
@@ -137,10 +119,8 @@ export class MapManager implements Manager {
     const tile = world.grid[gridPos.row][gridPos.col];
     if (!tile.building) {
       world.uiMode = { kind: 'buildingPanel', tile: gridPos };
-    } else if (tile.building.type === 'lawfirm') {
-      world.uiMode = { kind: 'lawfirmEmployeePanel', tile: gridPos };
     } else {
-      world.uiMode = { kind: 'officeEmployeePanel', tile: gridPos };
+      world.uiMode = { kind: 'buildingDetailPanel', tile: gridPos };
     }
   }
 
@@ -153,22 +133,17 @@ export class MapManager implements Manager {
 
     if (world.uiMode.kind === 'alert') {
       return;
+    } else if (world.uiMode.kind === 'confirm') {
+      this.handleConfirmKey(world, key);
     } else if (world.uiMode.kind === 'buildingPanel') {
       this.handleBuildingKey(world, key);
-    } else if (world.uiMode.kind === 'officeEmployeePanel') {
-      this.handleEmployeeKey(world, 'office', key);
-    } else if (world.uiMode.kind === 'lawfirmEmployeePanel') {
-      this.handleEmployeeKey(world, 'lawfirm', key);
-    }
-
-    if (world.hoveredTile && !world.selectedTile) {
-      this.syncPanelToTile(world, world.hoveredTile);
+    } else if (world.uiMode.kind === 'buildingDetailPanel') {
+      this.handleBuildingDetailKey(world, key);
     }
   }
 
   private handleBuildingKey(world: CorporateWorld, key: string): void {
     if (key === 'Escape') {
-      world.selectedTile = null;
       world.uiMode = { kind: 'none' };
       return;
     }
@@ -187,34 +162,75 @@ export class MapManager implements Manager {
       col,
       buildingType,
     });
+    world.uiMode = { kind: 'buildingDetailPanel', tile: { row, col } };
   }
 
-  private handleEmployeeKey(
-    world: CorporateWorld,
-    buildingType: EmployeeBuildingType,
-    key: string,
-  ): void {
+  private handleBuildingDetailKey(world: CorporateWorld, key: string): void {
+    if (world.uiMode.kind !== 'buildingDetailPanel') return;
+
     if (key === 'Escape') {
-      world.selectedTile = null;
       world.uiMode = { kind: 'none' };
       return;
     }
 
-    if (
-      world.uiMode.kind !== 'officeEmployeePanel' &&
-      world.uiMode.kind !== 'lawfirmEmployeePanel'
-    )
+    const { row, col } = world.uiMode.tile;
+    const building = world.grid[row][col].building;
+    if (!building) return;
+
+    // [S] Sell — enter confirmation
+    if (key === 'KeyS') {
+      const sellValue = Math.floor(
+        BUILDING_CONFIG[building.type].cost * SELL_PERCENTAGE,
+      );
+      const empCount = building.employees.length;
+      const detail =
+        empCount > 0
+          ? `Refund: $${sellValue.toLocaleString()}\n${empCount} employee${empCount > 1 ? 's' : ''} fired (no refund)`
+          : `Refund: $${sellValue.toLocaleString()}`;
+      world.uiMode = {
+        kind: 'confirm',
+        message: `Sell ${BUILDING_CONFIG[building.type].label}?`,
+        detail,
+        action: { kind: 'sell', playerId: world.playerId, row, col },
+        returnMode: { kind: 'buildingDetailPanel', tile: { row, col } },
+      };
       return;
+    }
 
+    // [X] Fire last employee — enter confirmation
+    if (key === 'KeyX') {
+      if (building.employees.length === 0) return;
+      world.uiMode = {
+        kind: 'confirm',
+        message: 'Fire 1 employee?',
+        detail: 'No refund.',
+        action: { kind: 'fire', playerId: world.playerId, row, col },
+        returnMode: { kind: 'buildingDetailPanel', tile: { row, col } },
+      };
+      return;
+    }
+
+    // [U] Upgrade — send directly (no confirmation)
+    if (key === 'KeyU') {
+      const nextType = UPGRADE_PATH[building.type];
+      if (!nextType) return;
+      this.sendAction({
+        kind: 'upgrade',
+        playerId: world.playerId,
+        row,
+        col,
+      });
+      return;
+    }
+
+    // [1-4] Hire employee
     const index = parseInt(key.replace('Digit', '')) - 1;
-
-    const employeeType =
-      buildingType === 'office'
-        ? OFFICE_EMPLOYEE_TYPES[index]
-        : LAWFIRM_EMPLOYEE_TYPES[index];
+    const isLawfirm = building.type === 'lawfirm';
+    const employeeType = isLawfirm
+      ? LAWFIRM_EMPLOYEE_TYPES[index]
+      : OFFICE_EMPLOYEE_TYPES[index];
     if (!employeeType) return;
 
-    const { row, col } = world.uiMode.tile;
     this.sendAction({
       kind: 'hire',
       playerId: world.playerId,
@@ -222,6 +238,27 @@ export class MapManager implements Manager {
       col,
       employeeType,
     });
+  }
+
+  private handleConfirmKey(world: CorporateWorld, key: string): void {
+    if (world.uiMode.kind !== 'confirm') return;
+
+    if (key === 'KeyY' || key === 'Enter') {
+      const action = world.uiMode.action;
+      this.sendAction(action);
+      // If selling, the building is gone — close panel
+      if (action.kind === 'sell') {
+        world.uiMode = { kind: 'none' };
+      } else {
+        world.uiMode = world.uiMode.returnMode;
+      }
+      return;
+    }
+
+    if (key === 'KeyN' || key === 'Escape') {
+      world.uiMode = world.uiMode.returnMode;
+      return;
+    }
   }
 
   private sendAction(action: GameAction): void {
@@ -276,14 +313,6 @@ export class MapManager implements Manager {
     const hovered = world.hoveredTile;
     const isHovering = hovered && this.isInBounds(world, hovered);
 
-    const selected =
-      world.uiMode.kind === 'buildingPanel' ||
-      world.uiMode.kind === 'officeEmployeePanel' ||
-      world.uiMode.kind === 'lawfirmEmployeePanel'
-        ? world.uiMode.tile
-        : null;
-    const hasActive = selected || isHovering;
-
     // background image (spans the full canvas)
     if (this.backgroundTexture) {
       const mapOriginX = LEFT_PANEL_WIDTH + MAP_PADDING;
@@ -314,9 +343,7 @@ export class MapManager implements Manager {
       const { x, y } = this.gridToIso(row, col);
       const isThisTileHovered =
         isHovering && hovered.row === row && hovered.col === col;
-      const isThisTileSelected =
-        selected && selected.row === row && selected.col === col;
-      const tileAlpha = isThisTileHovered || isThisTileSelected ? 1 : 0.3;
+      const tileAlpha = isThisTileHovered ? 1 : 0.3;
 
       const leftH =
         this.tileTextures.left.height * (HALF_W / this.tileTextures.left.width);
@@ -360,8 +387,6 @@ export class MapManager implements Manager {
 
       const isThisHovered =
         isHovering && hovered.row === row && hovered.col === col;
-      const isThisSelected =
-        selected && selected.row === row && selected.col === col;
 
       const { x, y } = this.gridToIso(row, col);
       const scale = ISO_TILE_W / texture.width;
@@ -370,7 +395,7 @@ export class MapManager implements Manager {
       renderer.drawSprite(texture, x - spriteW / 2, y + HALF_H - spriteH + 2, {
         width: spriteW,
         height: spriteH,
-        alpha: hasActive && !isThisHovered && !isThisSelected ? 0.3 : 1,
+        alpha: isHovering && !isThisHovered ? 0.3 : 1,
       });
     }
   }

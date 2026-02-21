@@ -6,6 +6,9 @@ import {
   BUILDING_TYPES,
   EMPLOYEE_CONFIG,
   EMPLOYEE_TYPES,
+  SELL_PERCENTAGE,
+  UPGRADE_PATH,
+  UPGRADE_COST_FACTOR,
   createWorld,
   getEmployeeCategory,
   type CorporateWorld,
@@ -463,6 +466,54 @@ app.post('/game/action', async (c) => {
     world.funds -= config.cost;
     tile.building.employees.push({ type: action.employeeType });
     world.mapDefense += config.defenseBoost;
+    return c.json({ ok: true });
+  }
+
+  if (action.kind === 'sell') {
+    if (!tile.building) {
+      return c.json({ error: 'no building on tile' }, 400);
+    }
+    const refund = Math.floor(
+      BUILDING_CONFIG[tile.building.type].cost * SELL_PERCENTAGE,
+    );
+    // Remove defense from all employees
+    for (const emp of tile.building.employees) {
+      world.mapDefense -= EMPLOYEE_CONFIG[emp.type].defenseBoost;
+    }
+    world.funds += refund;
+    tile.building = null;
+    return c.json({ ok: true });
+  }
+
+  if (action.kind === 'fire') {
+    if (!tile.building) {
+      return c.json({ error: 'no building on tile' }, 400);
+    }
+    if (tile.building.employees.length === 0) {
+      return c.json({ error: 'no employees to fire' }, 400);
+    }
+    const fired = tile.building.employees.pop()!;
+    world.mapDefense -= EMPLOYEE_CONFIG[fired.type].defenseBoost;
+    return c.json({ ok: true });
+  }
+
+  if (action.kind === 'upgrade') {
+    if (!tile.building) {
+      return c.json({ error: 'no building on tile' }, 400);
+    }
+    const nextType = UPGRADE_PATH[tile.building.type];
+    if (!nextType) {
+      return c.json({ error: 'building cannot be upgraded' }, 400);
+    }
+    const cost = Math.floor(
+      (BUILDING_CONFIG[nextType].cost - BUILDING_CONFIG[tile.building.type].cost) *
+        UPGRADE_COST_FACTOR,
+    );
+    if (world.funds < cost) {
+      return c.json({ error: 'insufficient funds' }, 400);
+    }
+    world.funds -= cost;
+    tile.building.type = nextType;
     return c.json({ ok: true });
   }
 

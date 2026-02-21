@@ -15,6 +15,8 @@ export const STARTING_FUNDS = 500_000;
 export const ATTACK_INTERVAL_TICKS = 2000;
 export const MAP_DEFENSE = 0;
 export const OFFICE_EMPLOYEE_HEALTH = 1;
+export const SELL_PERCENTAGE = 0.8;
+export const UPGRADE_COST_FACTOR = 0.7;
 
 // --- Buildings ---
 export type BuildingType =
@@ -36,6 +38,11 @@ export interface BuildingConfig {
   capacity: number;
   color: number;
 }
+
+export const UPGRADE_PATH: Partial<Record<BuildingType, BuildingType>> = {
+  smallOffice: 'mediumOffice',
+  mediumOffice: 'largeOffice',
+};
 
 export const BUILDING_CONFIG: Record<BuildingType, BuildingConfig> = {
   smallOffice: {
@@ -224,8 +231,8 @@ export interface Tile {
 export type UIMode =
   | { kind: 'none' }
   | { kind: 'buildingPanel'; tile: GridPos }
-  | { kind: 'officeEmployeePanel'; tile: GridPos }
-  | { kind: 'lawfirmEmployeePanel'; tile: GridPos }
+  | { kind: 'buildingDetailPanel'; tile: GridPos }
+  | { kind: 'confirm'; message: string; detail: string; action: GameAction; returnMode: UIMode }
   | { kind: 'alert' }
   | { kind: 'attackPanel'; targetId: string | null; troops: AttackTroop[] };
 
@@ -253,6 +260,24 @@ export type GameAction =
       row: number;
       col: number;
       employeeType: EmployeeType;
+    }
+  | {
+      kind: 'sell';
+      playerId: string;
+      row: number;
+      col: number;
+    }
+  | {
+      kind: 'fire';
+      playerId: string;
+      row: number;
+      col: number;
+    }
+  | {
+      kind: 'upgrade';
+      playerId: string;
+      row: number;
+      col: number;
     }
   | {
       kind: 'attack';
