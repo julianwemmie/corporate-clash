@@ -289,9 +289,9 @@ export class MapManager implements Manager {
       const mapOriginX = LEFT_PANEL_WIDTH + MAP_PADDING;
       const bgScale = CANVAS_WIDTH / this.backgroundTexture.width;
       const bgW = CANVAS_WIDTH;
-      const bgH = this.backgroundTexture.height * bgScale * 1.1;
+      const bgH = this.backgroundTexture.height * bgScale * 1.3;
       const bgX = (CANVAS_WIDTH - bgW) / 2 - mapOriginX;
-      const bgY = (CANVAS_HEIGHT - bgH) / 2 - MAP_OFFSET_Y - 20;
+      const bgY = (CANVAS_HEIGHT - bgH) / 2 - MAP_OFFSET_Y - 30;
       renderer.drawSprite(this.backgroundTexture, bgX, bgY, {
         width: bgW,
         height: bgH,
