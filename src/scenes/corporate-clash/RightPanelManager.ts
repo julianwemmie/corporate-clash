@@ -36,6 +36,8 @@ export class RightPanelManager implements Manager {
       this.renderBuildingDetailPanel(world, renderer);
     } else if (world.uiMode.kind === 'confirm') {
       this.renderConfirmPanel(world, renderer);
+    } else if (world.uiMode.kind === 'info') {
+      this.renderInfoPanel(world, renderer);
     }
   }
 
@@ -264,6 +266,39 @@ export class RightPanelManager implements Manager {
     renderer.drawText('[N] Cancel', PANEL_X, y, {
       fontSize: OPTION_SIZE,
       color: 0x997744,
+    });
+  }
+
+  private renderInfoPanel(world: CorporateWorld, renderer: Renderer): void {
+    if (world.uiMode.kind !== 'info') return;
+
+    let y = 10;
+
+    renderer.drawText('Notice', PANEL_X, y, {
+      fontSize: HEADER_SIZE,
+      color: 0xfb8000,
+    });
+    y += LINE_HEIGHT + 10;
+
+    renderer.drawText(world.uiMode.message, PANEL_X, y, {
+      fontSize: OPTION_SIZE,
+      color: BRIGHT,
+    });
+    y += LINE_HEIGHT + 2;
+
+    if (world.uiMode.detail) {
+      renderer.drawText(world.uiMode.detail, PANEL_X, y, {
+        fontSize: OPTION_SIZE - 2,
+        color: 0xaaaaaa,
+      });
+      y += LINE_HEIGHT;
+    }
+
+    y += 10;
+
+    renderer.drawText('[Space] OK', PANEL_X, y, {
+      fontSize: OPTION_SIZE,
+      color: 0x27ae60,
     });
   }
 

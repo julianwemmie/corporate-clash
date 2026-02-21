@@ -534,6 +534,10 @@ app.post('/game/action', async (c) => {
     if (tile.building.employees.length === 0) {
       return c.json({ error: 'no employees to fire' }, 400);
     }
+    const lastEmployee = tile.building.employees[tile.building.employees.length - 1];
+    if (lastEmployee.type === 'humanResources') {
+      return c.json({ error: 'cannot fire human resources employee' }, 400);
+    }
     const fired = tile.building.employees.pop()!;
     world.mapDefense -= EMPLOYEE_CONFIG[fired.type].defenseBoost;
     return c.json({ ok: true });

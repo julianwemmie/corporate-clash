@@ -137,6 +137,8 @@ export class MapManager implements Manager {
 
     if (world.uiMode.kind === 'alert') {
       return;
+    } else if (world.uiMode.kind === 'info') {
+      this.handleInfoKey(world, key);
     } else if (world.uiMode.kind === 'confirm') {
       this.handleConfirmKey(world, key);
     } else if (world.uiMode.kind === 'buildingPanel') {
@@ -201,9 +203,19 @@ export class MapManager implements Manager {
       return;
     }
 
-    // [X] Fire last employee — enter confirmation
+    // [X] Fire last employee — enter confirmation (block HR)
     if (key === 'KeyX') {
       if (building.employees.length === 0) return;
+      const lastEmployee = building.employees[building.employees.length - 1];
+      if (lastEmployee.type === 'humanResources') {
+        world.uiMode = {
+          kind: 'info',
+          message: 'OOF!',
+          detail: "You can't fire HR.",
+          returnMode: { kind: 'buildingDetailPanel', tile: { row, col } },
+        };
+        return;
+      }
       world.uiMode = {
         kind: 'confirm',
         message: 'Fire 1 employee?',
@@ -262,6 +274,14 @@ export class MapManager implements Manager {
     if (key === 'KeyN' || key === 'Escape') {
       world.uiMode = world.uiMode.returnMode;
       return;
+    }
+  }
+
+  private handleInfoKey(world: CorporateWorld, key: string): void {
+    if (world.uiMode.kind !== 'info') return;
+
+    if (key === 'Space' || key === 'Escape') {
+      world.uiMode = world.uiMode.returnMode;
     }
   }
 
