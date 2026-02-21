@@ -133,7 +133,7 @@ export const OFFICE_EMPLOYEE_CONFIG: Record<
   humanResources: {
     label: 'Human Resources',
     cost: 50_000,
-    profitPerTick: -10_000,
+    profitPerTick: -1_000,
     color: 0x8e44ad,
     health: 100,
     defenseBoost: 0,
@@ -248,6 +248,12 @@ export type UIMode =
       message: string;
       detail: string;
       action: GameAction;
+      returnMode: UIMode;
+    }
+  | {
+      kind: 'info';
+      message: string;
+      detail: string;
       returnMode: UIMode;
     }
   | { kind: 'alert' }
