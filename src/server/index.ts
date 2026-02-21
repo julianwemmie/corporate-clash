@@ -23,7 +23,7 @@ import { EconomyManager } from './EconomyManager.js';
 
 const MAX_PLAYERS = 50;
 const ATTACK_COOLDOWN_TICKS = 100;
-const DEFENSE_BUFFER_TICKS = 400; // 60s immunity after being attacked
+const DEFENSE_BUFFER_TICKS = 200; // 60s immunity after being attacked
 
 const app = new Hono();
 
@@ -58,6 +58,7 @@ const EVENTS: EventConfig[] = [
         return {
           title: 'Sweeping Tariffs!',
           message: `Trump instituted sweeping tariffs on office supplies. Import fees cost you $${flat.toLocaleString()}.`,
+          image: '/assets/events/Tariffs.png',
         };
       }
       const tariff = buildingCount * 15_000;
@@ -65,6 +66,7 @@ const EVENTS: EventConfig[] = [
       return {
         title: 'Sweeping Tariffs!',
         message: `Trump instituted sweeping tariffs on office supplies. Your ${buildingCount} ${buildingCount === 1 ? 'building costs' : 'buildings cost'} you $${tariff.toLocaleString()} in import fees.`,
+        image: '/assets/events/Tariffs.png',
       };
     },
   },
@@ -100,6 +102,7 @@ const EVENTS: EventConfig[] = [
       return {
         title: 'Return To Office!',
         message: `Your CEO instituted a return-to-office order. ${lost} employee${lost === 1 ? '' : 's'} quit rather than give up working from home.`,
+        image: '/assets/events/RTO.png',
       };
     },
   },
@@ -135,6 +138,7 @@ const EVENTS: EventConfig[] = [
       return {
         title: 'Zodiac Screening!',
         message: `The Head of HR fired all Scorpios. ${fired} employee${fired === 1 ? ' was' : 's were'} terminated for having toxic energy.`,
+        image: '/assets/events/HrFiresScorpios.png',
       };
     },
   },
@@ -168,6 +172,7 @@ const EVENTS: EventConfig[] = [
       return {
         title: 'Rebranded To X',
         message: `Your CEO rebranded the company to X, the everything app. ${lost} employee${lost === 1 ? '' : 's'} quit in embarrassment.`,
+        image: '/assets/events/RebrandAsX.png',
       };
     },
   },
@@ -202,6 +207,7 @@ const EVENTS: EventConfig[] = [
       return {
         title: 'INTERN DELETED PROD DB',
         message: `An unpaid intern ran DROP TABLE in production. You lost ${buildingsLost} building${buildingsLost === 1 ? '' : 's'}, ${employeesLost} employee${employeesLost === 1 ? '' : 's'}, and $${fundsLost.toLocaleString()} in recovered funds. 90% of your cash is gone.`,
+        image: '/assets/events/InternDeletesDb.png',
       };
     },
   },
@@ -243,6 +249,7 @@ const EVENTS: EventConfig[] = [
       return {
         title: 'Poached by Meta!',
         message: `Meta poached your ${config.label} ($${config.cost.toLocaleString()} to replace)!`,
+        image: '/assets/events/MetaPoaches.png',
       };
     },
   },
@@ -329,7 +336,7 @@ setInterval(() => {
       if (player.defenseBuffer <= 0) {
         const event = pickWeightedEvent();
         player.world.eventResult = event.effect(player.world);
-        player.defenseBuffer = EVENT_INTERVAL_TICKS;
+        player.defenseBuffer = DEFENSE_BUFFER_TICKS;
       }
     }
 
@@ -679,7 +686,8 @@ app.post('/game/action', async (c) => {
     if (tile.building.employees.length === 0) {
       return c.json({ error: 'no employees to fire' }, 400);
     }
-    const lastEmployee = tile.building.employees[tile.building.employees.length - 1];
+    const lastEmployee =
+      tile.building.employees[tile.building.employees.length - 1];
     if (lastEmployee.type === 'humanResources') {
       return c.json({ error: 'cannot fire human resources employee' }, 400);
     }

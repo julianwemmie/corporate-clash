@@ -12,7 +12,7 @@ export interface GridPos {
 // --- Constants ---
 
 export const STARTING_FUNDS = 100_000;
-export const EVENT_INTERVAL_TICKS = 300;
+export const EVENT_INTERVAL_TICKS = 400;
 export const MAP_DEFENSE = 0;
 export const OFFICE_EMPLOYEE_HEALTH = 1;
 export const SELL_PERCENTAGE = 0.8;
@@ -279,6 +279,7 @@ export interface DamageReport {
 export interface EventResult {
   title: string;
   message: string;
+  image?: string;
 }
 
 export interface EventConfig {

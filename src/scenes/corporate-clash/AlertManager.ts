@@ -1,3 +1,4 @@
+import { Assets, Texture } from 'pixi.js';
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
@@ -13,6 +14,7 @@ import type {
 export class AlertManager implements Manager {
   private savedReport: DamageReport | null = null;
   private savedEvent: EventResult | null = null;
+  private eventTextures = new Map<string, Texture>();
 
   update(world: CorporateWorld): void {
     if (world.attackActive && world.uiMode.kind !== 'alert') {
@@ -58,12 +60,34 @@ export class AlertManager implements Manager {
     const padding = 20;
     const textWidth = alertWidth - padding * 2;
 
+    // Load event image texture if needed
+    let eventTexture: Texture | null = null;
+    if (event.image) {
+      if (this.eventTextures.has(event.image)) {
+        eventTexture = this.eventTextures.get(event.image)!;
+      } else {
+        Assets.load(event.image).then((tex: Texture) => {
+          tex.source.scaleMode = 'nearest';
+          this.eventTextures.set(event.image!, tex);
+        });
+      }
+    }
+
+    const imageW = textWidth;
+    const imageH = eventTexture
+      ? (imageW / eventTexture.width) * eventTexture.height
+      : 0;
+    const imageSection = eventTexture ? imageH + 10 : 0;
+
     // Estimate wrapped message height: ~18px per line, ~50 chars per line at fontSize 14
     const charsPerLine = Math.floor(textWidth / 7.5);
-    const lineCount = Math.max(1, Math.ceil(event.message.length / charsPerLine));
+    const lineCount = Math.max(
+      1,
+      Math.ceil(event.message.length / charsPerLine),
+    );
     const messageHeight = lineCount * 18;
 
-    const alertHeight = 80 + messageHeight + 50;
+    const alertHeight = 80 + imageSection + messageHeight + 50;
     const top = CANVAS_HEIGHT / 2 - alertHeight / 2;
 
     renderer.drawRect(
@@ -82,7 +106,17 @@ export class AlertManager implements Manager {
       anchor: 0.5,
     });
 
-    renderer.drawText(event.message, cx, top + 70, {
+    let contentY = top + 70;
+
+    if (eventTexture) {
+      renderer.drawSprite(eventTexture, cx - imageW / 2, contentY, {
+        width: imageW,
+        height: imageH,
+      });
+      contentY += imageH + 10;
+    }
+
+    renderer.drawText(event.message, cx, contentY, {
       fontSize: 14,
       color: 0xffffff,
       anchor: 0.5,
