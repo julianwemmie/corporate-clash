@@ -14,6 +14,8 @@ const DIM = 0x665544;
 const BRIGHT = 0xffffff;
 
 export class AttackPanelManager implements Manager {
+  private selectedIndex = 0;
+
   onKeyDown(world: CorporateWorld, key: string): void {
     if (world.uiMode.kind !== 'attackPanel') {
       // 'A' key opens attack panel from default mode
@@ -22,6 +24,7 @@ export class AttackPanelManager implements Manager {
         world.uiMode.kind !== 'alert' &&
         world.uiMode.kind !== 'confirm'
       ) {
+        this.selectedIndex = 0;
         world.uiMode = { kind: 'attackPanel', targetId: null, troops: [] };
       }
       return;
@@ -36,17 +39,29 @@ export class AttackPanelManager implements Manager {
 
     // Phase 1: Picking a target (no target selected yet)
     if (!targetId) {
-      const index = parseInt(key.replace('Digit', '')) - 1;
       const otherPlayers = world.players.filter((p) => p.id !== world.playerId);
-      const target = otherPlayers[index];
-      if (target && target.defenseBuffer <= 0) {
-        world.uiMode = { kind: 'attackPanel', targetId: target.id, troops: [] };
+      if (otherPlayers.length === 0) return;
+
+      if (key === 'ArrowUp') {
+        this.selectedIndex =
+          (this.selectedIndex - 1 + otherPlayers.length) % otherPlayers.length;
+      } else if (key === 'ArrowDown') {
+        this.selectedIndex = (this.selectedIndex + 1) % otherPlayers.length;
+      } else if (key === 'Enter') {
+        const target = otherPlayers[this.selectedIndex];
+        if (target && target.defenseBuffer <= 0) {
+          this.selectedIndex = 0;
+          world.uiMode = {
+            kind: 'attackPanel',
+            targetId: target.id,
+            troops: [],
+          };
+        }
       }
       return;
     }
 
     // Phase 2: Selecting troops from buildings
-    const index = parseInt(key.replace('Digit', '')) - 1;
     const buildingTiles = [];
     for (const row of world.grid) {
       for (const tile of row) {
@@ -55,28 +70,38 @@ export class AttackPanelManager implements Manager {
         }
       }
     }
-    const tile = buildingTiles[index];
-    if (tile) {
-      const existing = troops.find(
-        (t) => t.row === tile.row && t.col === tile.col,
-      );
-      const currentCount = existing ? existing.count : 0;
-      const maxCount = tile.building!.employees.length;
-      if (currentCount < maxCount) {
-        const newTroops = troops.filter(
-          (t) => !(t.row === tile.row && t.col === tile.col),
-        );
-        newTroops.push({
-          row: tile.row,
-          col: tile.col,
-          count: currentCount + 1,
-        });
-        world.uiMode = { kind: 'attackPanel', targetId, troops: newTroops };
-      }
-    }
+    if (buildingTiles.length === 0) return;
 
-    // Enter to launch attack
-    if (key === 'Enter' && troops.length > 0) {
+    if (key === 'ArrowUp') {
+      this.selectedIndex =
+        (this.selectedIndex - 1 + buildingTiles.length) % buildingTiles.length;
+    } else if (key === 'ArrowDown') {
+      this.selectedIndex = (this.selectedIndex + 1) % buildingTiles.length;
+    } else if (key === 'Enter') {
+      if (troops.length > 0 || buildingTiles[this.selectedIndex]) {
+        // If troops are selected and user presses enter on a building, add troop
+        const tile = buildingTiles[this.selectedIndex];
+        if (tile) {
+          const existing = troops.find(
+            (t) => t.row === tile.row && t.col === tile.col,
+          );
+          const currentCount = existing ? existing.count : 0;
+          const maxCount = tile.building!.employees.length;
+          if (currentCount < maxCount) {
+            const newTroops = troops.filter(
+              (t) => !(t.row === tile.row && t.col === tile.col),
+            );
+            newTroops.push({
+              row: tile.row,
+              col: tile.col,
+              count: currentCount + 1,
+            });
+            world.uiMode = { kind: 'attackPanel', targetId, troops: newTroops };
+          }
+        }
+      }
+    } else if (key === 'Space' && troops.length > 0) {
+      // Space to launch attack
       const action: GameAction = {
         kind: 'attack',
         playerId: world.playerId,
@@ -132,12 +157,14 @@ export class AttackPanelManager implements Manager {
       otherPlayers.forEach((p, i) => {
         const shielded = p.defenseBuffer > 0;
         const shieldSecs = Math.ceil(p.defenseBuffer * TICK_RATE_S);
+        const selected = i === this.selectedIndex;
+        const prefix = selected ? '> ' : '  ';
         const label = shielded
-          ? `[${i + 1}] ${p.name} [Shield ${shieldSecs}s]`
-          : `[${i + 1}] ${p.name}`;
+          ? `${prefix}${p.name} [Shield ${shieldSecs}s]`
+          : `${prefix}${p.name}`;
         renderer.drawText(label, PANEL_X, y, {
           fontSize: OPTION_SIZE,
-          color: shielded ? DIM : BRIGHT,
+          color: shielded ? DIM : selected ? 0xffcc00 : BRIGHT,
         });
         y += LINE_HEIGHT - 4;
         renderer.drawText(
@@ -151,6 +178,17 @@ export class AttackPanelManager implements Manager {
         );
         y += LINE_HEIGHT;
       });
+      y += 4;
+      renderer.drawText('[UP/DOWN] Select', PANEL_X, y, {
+        fontSize: OPTION_SIZE - 2,
+        color: 0xaaaaaa,
+      });
+      y += LINE_HEIGHT;
+      renderer.drawText('[ENTER] Confirm', PANEL_X, y, {
+        fontSize: OPTION_SIZE - 2,
+        color: 0xaaaaaa,
+      });
+      y += LINE_HEIGHT;
     } else {
       // Phase 2: Pick troops
       const target = world.players.find((p) => p.id === targetId);
@@ -181,11 +219,13 @@ export class AttackPanelManager implements Manager {
         );
         const count = assigned ? assigned.count : 0;
         const max = tile.building!.employees.length;
+        const selected = i === this.selectedIndex;
+        const prefix = selected ? '> ' : '  ';
         renderer.drawText(
-          `[${i + 1}] (${tile.row},${tile.col}) ${count}/${max}`,
+          `${prefix}(${tile.row},${tile.col}) ${count}/${max}`,
           PANEL_X,
           y,
-          { fontSize: OPTION_SIZE, color: BRIGHT },
+          { fontSize: OPTION_SIZE, color: selected ? 0xffcc00 : BRIGHT },
         );
         y += LINE_HEIGHT;
       });
@@ -198,8 +238,19 @@ export class AttackPanelManager implements Manager {
       });
       y += LINE_HEIGHT + 4;
 
+      renderer.drawText('[UP/DOWN] Select', PANEL_X, y, {
+        fontSize: OPTION_SIZE - 2,
+        color: 0xaaaaaa,
+      });
+      y += LINE_HEIGHT;
+      renderer.drawText('[ENTER] Add troop', PANEL_X, y, {
+        fontSize: OPTION_SIZE - 2,
+        color: 0xaaaaaa,
+      });
+      y += LINE_HEIGHT;
+
       if (totalTroops > 0) {
-        renderer.drawText('[ENTER] Launch Attack', PANEL_X, y, {
+        renderer.drawText('[SPACE] Launch Attack', PANEL_X, y, {
           fontSize: OPTION_SIZE,
           color: 0x2ecc71,
         });
