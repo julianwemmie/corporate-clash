@@ -16,14 +16,14 @@ const PANEL_X = 10;
 const LINE_HEIGHT = 22;
 const HEADER_SIZE = 18;
 const OPTION_SIZE = 13;
-const DIM = 0x666666;
+const DIM = 0x665544;
 const BRIGHT = 0xffffff;
 
 export class RightPanelManager implements Manager {
   render(world: CorporateWorld, renderer: Renderer): void {
     if (world.phase !== 'playing') return;
 
-    renderer.drawRect(0, 0, RIGHT_PANEL_WIDTH, CANVAS_HEIGHT, 0x000000);
+    renderer.drawRect(0, 0, RIGHT_PANEL_WIDTH, CANVAS_HEIGHT, 0x16213e);
 
     if (world.uiMode.kind === 'buildingPanel') {
       this.renderBuildingPanel(world, renderer);
@@ -40,7 +40,7 @@ export class RightPanelManager implements Manager {
 
     renderer.drawText('Build', PANEL_X, y, {
       fontSize: HEADER_SIZE,
-      color: 0x4a90d9,
+      color: 0xfb8000,
     });
     y += LINE_HEIGHT + 10;
 
@@ -66,7 +66,7 @@ export class RightPanelManager implements Manager {
     y += 4;
     renderer.drawText('[ESC] Close', PANEL_X, y, {
       fontSize: OPTION_SIZE,
-      color: 0xaaaaaa,
+      color: 0x997744,
     });
   }
 
@@ -88,13 +88,13 @@ export class RightPanelManager implements Manager {
 
     renderer.drawText('Hire Employee', PANEL_X, y, {
       fontSize: HEADER_SIZE,
-      color: 0x2ecc71,
+      color: 0xfb8000,
     });
     y += LINE_HEIGHT + 4;
 
     renderer.drawText(`${current}/${capacity} slots`, PANEL_X, y, {
       fontSize: OPTION_SIZE,
-      color: 0xaaaaaa,
+      color: 0x997744,
     });
     y += LINE_HEIGHT + 6;
 
@@ -115,7 +115,7 @@ export class RightPanelManager implements Manager {
     y += 4;
     renderer.drawText('[ESC] Close', PANEL_X, y, {
       fontSize: OPTION_SIZE,
-      color: 0xaaaaaa,
+      color: 0x997744,
     });
   }
 

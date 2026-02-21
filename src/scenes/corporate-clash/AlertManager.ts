@@ -29,8 +29,8 @@ export class AlertManager implements Manager {
     const report = this.savedReport;
     if (!report) return;
 
-    renderer.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0xffffff, {
-      alpha: 0.3,
+    renderer.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0x000000, {
+      alpha: 0.5,
     });
 
     const alertWidth = 450;
@@ -40,8 +40,15 @@ export class AlertManager implements Manager {
       CANVAS_HEIGHT / 2 - alertHeight / 2,
       alertWidth,
       alertHeight,
-      0x000000,
-      { alpha: 0.9 },
+      0x16213e,
+      { alpha: 0.95 },
+    );
+    renderer.drawRect(
+      CANVAS_WIDTH / 2 - alertWidth / 2,
+      CANVAS_HEIGHT / 2 - alertHeight / 2,
+      alertWidth,
+      3,
+      0xfb8000,
     );
 
     let title: string;
@@ -57,7 +64,7 @@ export class AlertManager implements Manager {
 
     renderer.drawText(title, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 85, {
       fontSize: 24,
-      color: 0xffffff,
+      color: 0xfb8000,
       anchor: 0.5,
     });
 

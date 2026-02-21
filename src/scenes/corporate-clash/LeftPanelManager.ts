@@ -30,40 +30,45 @@ export class LeftPanelManager implements Manager {
 
   render(world: CorporateWorld, renderer: Renderer): void {
     if (world.phase === 'playing') {
-      renderer.drawRect(0, 0, LEFT_PANEL_WIDTH, CANVAS_HEIGHT, 0x000000);
+      renderer.drawRect(0, 0, LEFT_PANEL_WIDTH, CANVAS_HEIGHT, 0x16213e);
 
       const { funds, mapDefense, buildings, employees } = this.display(world);
-      renderer.drawText(`$${funds.toLocaleString()}`, 10, 10, {
+      renderer.drawText(`$${funds.toLocaleString()}`, 10, 14, {
         fontSize: 20,
-        color: 0x2ecc71,
+        color: 0xfb8000,
       });
 
-      renderer.drawText(`Defense: ${mapDefense.toLocaleString()}`, 10, 40, {
+      renderer.drawText(`Defense: ${mapDefense.toLocaleString()}`, 10, 44, {
         fontSize: 20,
-        color: 0x2ecc71,
+        color: 0xfb8000,
       });
-      renderer.drawText(`Buildings: ${buildings}`, 10, 76, {
+
+      renderer.drawRect(10, 74, LEFT_PANEL_WIDTH - 20, 1, 0xfb8000, {
+        alpha: 0.3,
+      });
+
+      renderer.drawText(`Buildings: ${buildings}`, 10, 86, {
         fontSize: 14,
         color: 0xcccccc,
       });
-      renderer.drawText(`Employees: ${employees}`, 10, 106, {
+      renderer.drawText(`Employees: ${employees}`, 10, 116, {
         fontSize: 14,
         color: 0xcccccc,
       });
-      renderer.drawText(`Players: ${world.players.length}`, 10, 136, {
+      renderer.drawText(`Players: ${world.players.length}`, 10, 146, {
         fontSize: 14,
         color: 0xcccccc,
       });
 
       const nextAttackSecs = Math.ceil(world.attackTimer * TICK_RATE_S);
-      renderer.drawText(`Next raid: ${nextAttackSecs}s`, 10, 166, {
+      renderer.drawText(`Next raid: ${nextAttackSecs}s`, 10, 176, {
         fontSize: 14,
         color: 0xe74c3c,
       });
 
       if (world.defenseBuffer > 0) {
         const bufferSecs = Math.ceil(world.defenseBuffer * TICK_RATE_S);
-        renderer.drawText(`Shield: ${bufferSecs}s`, 10, 190, {
+        renderer.drawText(`Shield: ${bufferSecs}s`, 10, 200, {
           fontSize: 14,
           color: 0x3498db,
         });
@@ -81,7 +86,7 @@ export class LeftPanelManager implements Manager {
 
       renderer.drawText('[A] Attack', 10, bottomY, {
         fontSize: 14,
-        color: 0xaaaaaa,
+        color: 0x997744,
       });
     }
   }

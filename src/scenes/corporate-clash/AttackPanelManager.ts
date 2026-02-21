@@ -6,7 +6,7 @@ const PANEL_X = 10;
 const LINE_HEIGHT = 22;
 const HEADER_SIZE = 18;
 const OPTION_SIZE = 13;
-const DIM = 0x666666;
+const DIM = 0x665544;
 const BRIGHT = 0xffffff;
 
 export class AttackPanelManager implements Manager {
@@ -87,7 +87,7 @@ export class AttackPanelManager implements Manager {
   render(world: CorporateWorld, renderer: Renderer): void {
     if (world.uiMode.kind !== 'attackPanel') return;
 
-    renderer.drawRect(0, 0, RIGHT_PANEL_WIDTH, CANVAS_HEIGHT, 0x000000);
+    renderer.drawRect(0, 0, RIGHT_PANEL_WIDTH, CANVAS_HEIGHT, 0x16213e);
 
     const { targetId, troops } = world.uiMode;
     let y = 10;
@@ -106,7 +106,7 @@ export class AttackPanelManager implements Manager {
       y += LINE_HEIGHT;
       renderer.drawText('[ESC] Close', PANEL_X, y, {
         fontSize: OPTION_SIZE,
-        color: 0xaaaaaa,
+        color: 0x997744,
       });
       return;
     }
@@ -115,7 +115,7 @@ export class AttackPanelManager implements Manager {
     if (!targetId) {
       renderer.drawText('Pick target:', PANEL_X, y, {
         fontSize: OPTION_SIZE,
-        color: 0xaaaaaa,
+        color: 0x997744,
       });
       y += LINE_HEIGHT;
       const otherPlayers = world.players.filter((p) => p.id !== world.playerId);
@@ -131,7 +131,7 @@ export class AttackPanelManager implements Manager {
           y,
           {
             fontSize: OPTION_SIZE - 2,
-            color: 0xaaaaaa,
+            color: 0x997744,
           },
         );
         y += LINE_HEIGHT;
@@ -147,7 +147,7 @@ export class AttackPanelManager implements Manager {
 
       renderer.drawText('Send troops from:', PANEL_X, y, {
         fontSize: OPTION_SIZE,
-        color: 0xaaaaaa,
+        color: 0x997744,
       });
       y += LINE_HEIGHT;
 

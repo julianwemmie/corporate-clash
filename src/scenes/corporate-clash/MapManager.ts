@@ -364,7 +364,7 @@ export class MapManager implements Manager {
       `[R] Rotate | Facing ${DIRECTION_LABELS[this.rotation]}`,
       MAP_AREA_W - 10,
       10,
-      { fontSize: 12, color: 0x888888, anchor: 1 },
+      { fontSize: 12, color: 0x997744, anchor: 1 },
     );
   }
 }
