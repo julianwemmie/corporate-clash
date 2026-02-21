@@ -24,7 +24,6 @@ import { EconomyManager } from './EconomyManager.js';
 const MAX_PLAYERS = 50;
 const ATTACK_COOLDOWN_TICKS = 100;
 const DEFENSE_BUFFER_TICKS = 400; // 60s immunity after being attacked
-const NPC_DAMAGE_PERCENT = 0.3;
 
 const app = new Hono();
 
@@ -43,183 +42,8 @@ interface PlayerState {
 
 const EVENTS: EventConfig[] = [
   {
-    label: 'Corporate Raid',
-    weight: 3,
-    effect: (world) => {
-      let totalHeadcount = 0;
-      for (const row of world.grid) {
-        for (const tile of row) {
-          if (tile.building) totalHeadcount += tile.building.employees.length;
-        }
-      }
-      if (totalHeadcount === 0) {
-        return {
-          title: 'Raid Averted',
-          message: 'Corporate Raiders found nothing to attack.',
-        };
-      }
-
-      let killRolls = 0;
-      for (let i = 0; i < totalHeadcount; i++) {
-        if (Math.random() < NPC_DAMAGE_PERCENT) killRolls++;
-      }
-      if (killRolls === 0) {
-        return {
-          title: 'Raid Repelled',
-          message: 'Corporate Raiders attacked but caused no damage!',
-        };
-      }
-
-      let lawyersLost = 0;
-      let employeesLost = 0;
-      let buildingsLost = 0;
-
-      for (const row of world.grid) {
-        for (const tile of row) {
-          if (!tile.building || killRolls <= 0) continue;
-          tile.building.employees = tile.building.employees.filter((e) => {
-            if (killRolls <= 0) return true;
-            if (getEmployeeCategory(e.type) === 'lawfirm') {
-              killRolls -= EMPLOYEE_CONFIG[e.type].health;
-              lawyersLost++;
-              world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
-              return false;
-            }
-            return true;
-          });
-          if (tile.building.employees.length === 0) {
-            tile.building = null;
-            buildingsLost++;
-          }
-        }
-      }
-
-      for (const row of world.grid) {
-        for (const tile of row) {
-          if (!tile.building || killRolls <= 0) continue;
-          tile.building.employees = tile.building.employees.filter((e) => {
-            if (killRolls <= 0) return true;
-            if (getEmployeeCategory(e.type) === 'office') {
-              killRolls--;
-              employeesLost++;
-              world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
-              return false;
-            }
-            return true;
-          });
-          if (tile.building.employees.length === 0) {
-            tile.building = null;
-            buildingsLost++;
-          }
-        }
-      }
-
-      const totalLost = employeesLost + lawyersLost;
-      return {
-        title: 'Under Attack!',
-        message: `Corporate Raiders attacked! You lost ${totalLost} employees and ${buildingsLost} buildings.`,
-      };
-    },
-  },
-
-  {
-    label: 'Meta hires your Chief of AI',
-    weight: 2,
-    effect: (world) => {
-      // Target the most expensive employee
-      let bestTile: (typeof world.grid)[0][0] | null = null;
-      let bestIdx = -1;
-      let bestCost = -1;
-      for (const row of world.grid) {
-        for (const tile of row) {
-          if (!tile.building) continue;
-          for (let i = 0; i < tile.building.employees.length; i++) {
-            const cost = EMPLOYEE_CONFIG[tile.building.employees[i].type].cost;
-            if (cost > bestCost) {
-              bestCost = cost;
-              bestTile = tile;
-              bestIdx = i;
-            }
-          }
-        }
-      }
-      if (!bestTile || bestIdx === -1) {
-        return {
-          title: 'Poaching Attempt',
-          message:
-            'A competitor tried to poach your staff, but you have no employees!',
-        };
-      }
-      const emp = bestTile.building!.employees[bestIdx];
-      const config = EMPLOYEE_CONFIG[emp.type];
-      world.mapDefense -= config.defenseBoost;
-      bestTile.building!.employees.splice(bestIdx, 1);
-      if (bestTile.building!.employees.length === 0) {
-        bestTile.building = null;
-      }
-      return {
-        title: 'Talent Poached',
-        message: `A competitor hired away your ${config.label} ($${config.cost.toLocaleString()} to replace)!`,
-      };
-    },
-  },
-  {
-    label: 'Tax Audit',
-    weight: 1,
-    effect: (world) => {
-      let buildingCount = 0;
-      for (const row of world.grid) {
-        for (const tile of row) {
-          if (tile.building) buildingCount++;
-        }
-      }
-      const finePerBuilding = 10_000;
-      const fine = Math.max(5_000, buildingCount * finePerBuilding);
-      world.funds -= fine;
-      return {
-        title: 'IRS Audit',
-        message:
-          buildingCount > 0
-            ? `Auditors found discrepancies across ${buildingCount} properties. You paid $${fine.toLocaleString()} in back taxes.`
-            : `Routine audit. Minimum filing penalty: $${fine.toLocaleString()}.`,
-      };
-    },
-  },
-  {
-    label: 'Office Affair',
-    weight: 1,
-    effect: (world) => {
-      // Find a building with 2+ employees — the couple leaves
-      for (const row of world.grid) {
-        for (const tile of row) {
-          if (!tile.building || tile.building.employees.length < 2) continue;
-          const emp1 = tile.building.employees[0];
-          const emp2 = tile.building.employees[1];
-          const config1 = EMPLOYEE_CONFIG[emp1.type];
-          const config2 = EMPLOYEE_CONFIG[emp2.type];
-          world.mapDefense -= config1.defenseBoost + config2.defenseBoost;
-          tile.building.employees.splice(0, 2);
-          if (tile.building.employees.length === 0) {
-            tile.building = null;
-          }
-          return {
-            title: 'Office Scandal!',
-            message: `Your ${config1.label} and ${config2.label} were caught in an affair. Both resigned in disgrace.`,
-          };
-        }
-      }
-      // No building with 2+ employees
-      const fine = Math.floor(world.funds * 0.05);
-      world.funds -= fine;
-      return {
-        title: 'Tabloid Gossip',
-        message: `Rumors about your company hit the tabloids. PR damage cost $${fine.toLocaleString()}.`,
-      };
-    },
-  },
-  {
     label: 'Trump Tariffs',
-    weight: 2,
+    weight: 1,
     effect: (world) => {
       // Tariffs hit every building — supply costs go up
       let buildingCount = 0;
@@ -232,15 +56,85 @@ const EVENTS: EventConfig[] = [
         const flat = 5_000;
         world.funds -= flat;
         return {
-          title: 'New Tariffs!',
-          message: `Trump slapped new tariffs on office supplies. Import fees cost you $${flat.toLocaleString()}.`,
+          title: 'Sweeping Tariffs!',
+          message: `Trump instituted sweeping tariffs on office supplies. Import fees cost you $${flat.toLocaleString()}.`,
         };
       }
       const tariff = buildingCount * 15_000;
       world.funds -= tariff;
       return {
-        title: 'New Tariffs!',
-        message: `Trump slapped ${buildingCount === 1 ? 'a' : ''} new tariffs on office supplies. Your ${buildingCount} ${buildingCount === 1 ? 'building costs' : 'buildings cost'} you $${tariff.toLocaleString()} in import fees.`,
+        title: 'Sweeping Tariffs!',
+        message: `Trump instituted sweeping tariffs on office supplies. Your ${buildingCount} ${buildingCount === 1 ? 'building costs' : 'buildings cost'} you $${tariff.toLocaleString()} in import fees.`,
+      };
+    },
+  },
+  {
+    label: 'Return To Office',
+    weight: 1,
+    effect: (world) => {
+      // CEO mandates RTO — every employee has a 33% chance of quitting
+      let lost = 0;
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (!tile.building || tile.building.employees.length === 0) continue;
+          tile.building.employees = tile.building.employees.filter((e) => {
+            if (Math.random() < 0.33) {
+              world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+              lost++;
+              return false;
+            }
+            return true;
+          });
+          if (tile.building.employees.length === 0) {
+            tile.building = null;
+          }
+        }
+      }
+      if (lost === 0) {
+        return {
+          title: 'Return To Office!',
+          message:
+            'Your CEO instituted a return-to-office order. Miraculously, nobody quit.',
+        };
+      }
+      return {
+        title: 'Return To Office!',
+        message: `Your CEO instituted a return-to-office order. ${lost} employee${lost === 1 ? '' : 's'} quit rather than give up working from home.`,
+      };
+    },
+  },
+  {
+    label: 'HR Fires Scorpios',
+    weight: 1,
+    effect: (world) => {
+      // Head of HR fires all Scorpios — each employee has a 1-in-12 chance
+      let fired = 0;
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (!tile.building || tile.building.employees.length === 0) continue;
+          tile.building.employees = tile.building.employees.filter((e) => {
+            if (Math.random() < 1 / 12) {
+              world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+              fired++;
+              return false;
+            }
+            return true;
+          });
+          if (tile.building.employees.length === 0) {
+            tile.building = null;
+          }
+        }
+      }
+      if (fired === 0) {
+        return {
+          title: 'Zodiac Screening!',
+          message:
+            'The Head of HR ran birth chart audits on the whole company. No Scorpios were found.',
+        };
+      }
+      return {
+        title: 'Zodiac Screening!',
+        message: `The Head of HR fired all Scorpios. ${fired} employee${fired === 1 ? ' was' : 's were'} terminated for having toxic energy.`,
       };
     },
   },
@@ -268,60 +162,12 @@ const EVENTS: EventConfig[] = [
         return {
           title: 'Rebranded To X',
           message:
-            'Your CEO rebranded the company to X. Nobody noticed because you have no employees.',
+            'Your CEO rebranded the company to X, the everything app. Nobody noticed because you have no employees.',
         };
       }
       return {
         title: 'Rebranded To X',
-        message: `Your CEO rebranded the company to X. ${lost} employee${lost === 1 ? '' : 's'} quit in embarrassment.`,
-      };
-    },
-  },
-  {
-    label: 'Opus 6 Released',
-    weight: 1,
-    effect: (world) => {
-      // Opus 6 automates work — every engineer doubles output for one cycle (instant cash bonus)
-      let engineerCount = 0;
-      for (const row of world.grid) {
-        for (const tile of row) {
-          if (!tile.building) continue;
-          for (const emp of tile.building.employees) {
-            if (emp.type === 'engineer') engineerCount++;
-          }
-        }
-      }
-      if (engineerCount === 0) {
-        // No engineers — AI replaces your most junior employee instead
-        for (const row of world.grid) {
-          for (const tile of row) {
-            if (!tile.building || tile.building.employees.length === 0)
-              continue;
-            const idx = tile.building.employees.findIndex(
-              (e) => e.type === 'officeWorker',
-            );
-            if (idx !== -1) {
-              tile.building.employees.splice(idx, 1);
-              if (tile.building.employees.length === 0) tile.building = null;
-              return {
-                title: 'Opus 6 Released!',
-                message:
-                  'Anthropic released Opus 6. You had no engineers to use it, so it replaced an office worker.',
-              };
-            }
-          }
-        }
-        return {
-          title: 'Opus 6 Released!',
-          message:
-            'Anthropic released Opus 6. Your company has no idea what to do with it.',
-        };
-      }
-      const bonus = engineerCount * 20_000;
-      world.funds += bonus;
-      return {
-        title: 'Opus 6 Released!',
-        message: `Anthropic released Opus 6! Your ${engineerCount} engineer${engineerCount === 1 ? '' : 's'} automated a sprint — earned $${bonus.toLocaleString()} in productivity gains.`,
+        message: `Your CEO rebranded the company to X, the everything app. ${lost} employee${lost === 1 ? '' : 's'} quit in embarrassment.`,
       };
     },
   },
@@ -356,6 +202,47 @@ const EVENTS: EventConfig[] = [
       return {
         title: 'INTERN DELETED PROD DB',
         message: `An unpaid intern ran DROP TABLE in production. You lost ${buildingsLost} building${buildingsLost === 1 ? '' : 's'}, ${employeesLost} employee${employeesLost === 1 ? '' : 's'}, and $${fundsLost.toLocaleString()} in recovered funds. 90% of your cash is gone.`,
+      };
+    },
+  },
+  {
+    label: 'Meta Poaches Chief of AI',
+    weight: 1,
+    effect: (world) => {
+      // Target the most expensive employee
+      let bestTile: (typeof world.grid)[0][0] | null = null;
+      let bestIdx = -1;
+      let bestCost = -1;
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (!tile.building) continue;
+          for (let i = 0; i < tile.building.employees.length; i++) {
+            const cost = EMPLOYEE_CONFIG[tile.building.employees[i].type].cost;
+            if (cost > bestCost) {
+              bestCost = cost;
+              bestTile = tile;
+              bestIdx = i;
+            }
+          }
+        }
+      }
+      if (!bestTile || bestIdx === -1) {
+        return {
+          title: 'Poaching Attempt',
+          message:
+            'Meta tried to poach your Chief of AI, but you have no employees!',
+        };
+      }
+      const emp = bestTile.building!.employees[bestIdx];
+      const config = EMPLOYEE_CONFIG[emp.type];
+      world.mapDefense -= config.defenseBoost;
+      bestTile.building!.employees.splice(bestIdx, 1);
+      if (bestTile.building!.employees.length === 0) {
+        bestTile.building = null;
+      }
+      return {
+        title: 'Poached by Meta!',
+        message: `Meta poached your ${config.label} ($${config.cost.toLocaleString()} to replace)!`,
       };
     },
   },
