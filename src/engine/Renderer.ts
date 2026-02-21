@@ -82,12 +82,14 @@ export class Renderer implements IRenderer {
     text: string,
     pixelX: number,
     pixelY: number,
-    options?: { fontSize?: number; color?: number; anchor?: number },
+    options?: { fontSize?: number; color?: number; anchor?: number; wordWrapWidth?: number },
   ): void {
     const style = new TextStyle({
       fontSize: options?.fontSize ?? 24,
       fill: options?.color ?? 0xffffff,
       fontFamily: 'monospace',
+      wordWrap: options?.wordWrapWidth !== undefined,
+      wordWrapWidth: options?.wordWrapWidth,
     });
     const t = new Text({ text, style });
     t.anchor.set(options?.anchor ?? 0, 0);

@@ -39,10 +39,11 @@ export class NetworkManager implements Manager {
     world.funds = this.pending.funds;
     world.mapDefense = this.pending.mapDefense;
     world.grid = this.pending.grid;
-    world.attackTimer = this.pending.attackTimer;
+    world.eventTimer = this.pending.eventTimer;
     world.attackCooldown = this.pending.attackCooldown;
     world.defenseBuffer = this.pending.defenseBuffer;
     world.players = this.pending.players;
+    world.eventResult = this.pending.eventResult;
 
     if (this.pendingAttack) {
       world.attackActive = this.pendingAttack;

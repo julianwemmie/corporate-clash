@@ -43,7 +43,7 @@ export interface Renderer {
     text: string,
     pixelX: number,
     pixelY: number,
-    options?: { fontSize?: number; color?: number; anchor?: number },
+    options?: { fontSize?: number; color?: number; anchor?: number; wordWrapWidth?: number },
   ): void;
   drawSprite(
     texture: Texture,
