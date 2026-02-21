@@ -12,6 +12,7 @@ import {
   createWorld,
   getEmployeeCategory,
   type CorporateWorld,
+  type DamageReport,
   type GameAction,
   type GameState,
   type PlayerInfo,
@@ -171,11 +172,16 @@ setInterval(() => {
             }
 
             player.world.attackActive = {
-              buildingsLost,
-              employeesLost: employeesLost + lawyersLost,
-              attackerName: 'Corporate Raiders',
-              defender: null,
               isAttacker: false,
+              attackerName: 'Corporate Raiders',
+              defenderName: player.name,
+              troopsSent: 0,
+              attacker: { employeesLost: 0, buildingsLost: 0 },
+              defender: {
+                employeesLost: employeesLost + lawyersLost,
+                buildingsLost,
+              },
+              cashStolen: 0,
             };
           }
 
@@ -299,6 +305,7 @@ app.post('/game/action', async (c) => {
     }
 
     // Remove troops from attacker's buildings (office workers first, preserve lawyers)
+    let attackerBuildingsLost = 0;
     for (const troop of action.troops) {
       const tile = player.world.grid[troop.row][troop.col];
       let toRemove = troop.count;
@@ -321,6 +328,7 @@ app.post('/game/action', async (c) => {
       });
       if (tile.building!.employees.length === 0) {
         tile.building = null;
+        attackerBuildingsLost++;
       }
     }
 
@@ -394,25 +402,38 @@ app.post('/game/action', async (c) => {
     }
 
     const defenderEmployeesLost = defenderLawyersLost + defenderRegularLost;
-
     const attackerEmployeesLost = totalAttackers - attackersLeft;
 
+    // Cash steal: 10% of target's funds per building destroyed, capped at 50%
+    let cashStolen = 0;
+    if (defenderBuildingsLost > 0) {
+      const maxSteal = Math.floor(target.world.funds * 0.5);
+      cashStolen = Math.min(
+        Math.floor(target.world.funds * 0.1 * defenderBuildingsLost),
+        maxSteal,
+      );
+      target.world.funds -= cashStolen;
+      player.world.funds += cashStolen;
+    }
+
     // Set damage reports on both players
-    player.world.attackActive = {
-      buildingsLost: 0,
-      employeesLost: attackerEmployeesLost,
-      attackerName: null,
-      defender: target.name,
-      isAttacker: true,
+    const report: Omit<DamageReport, 'isAttacker'> = {
+      attackerName: player.name,
+      defenderName: target.name,
+      troopsSent: totalAttackers,
+      attacker: {
+        employeesLost: attackerEmployeesLost,
+        buildingsLost: attackerBuildingsLost,
+      },
+      defender: {
+        employeesLost: defenderEmployeesLost,
+        buildingsLost: defenderBuildingsLost,
+      },
+      cashStolen,
     };
 
-    target.world.attackActive = {
-      buildingsLost: defenderBuildingsLost,
-      employeesLost: defenderEmployeesLost,
-      attackerName: player.name,
-      defender: null,
-      isAttacker: false,
-    };
+    player.world.attackActive = { ...report, isAttacker: true };
+    target.world.attackActive = { ...report, isAttacker: false };
 
     player.attackCooldown = ATTACK_COOLDOWN_TICKS;
     target.defenseBuffer = DEFENSE_BUFFER_TICKS;

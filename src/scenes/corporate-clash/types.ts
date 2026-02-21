@@ -243,12 +243,19 @@ export type UIMode =
   | { kind: 'alert' }
   | { kind: 'attackPanel'; targetId: string | null; troops: AttackTroop[] };
 
-export interface DamageReport {
-  buildingsLost: number;
+export interface CombatSideResult {
   employeesLost: number;
-  attackerName: string | null;
-  defender: string | null;
+  buildingsLost: number;
+}
+
+export interface DamageReport {
   isAttacker: boolean;
+  attackerName: string;
+  defenderName: string;
+  troopsSent: number;
+  attacker: CombatSideResult;
+  defender: CombatSideResult;
+  cashStolen: number;
 }
 
 // --- Player Actions (client → server) ---

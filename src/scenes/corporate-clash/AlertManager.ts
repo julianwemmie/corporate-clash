@@ -35,67 +35,109 @@ export class AlertManager implements Manager {
     });
 
     const alertWidth = 450;
-    const alertHeight = 220;
+    const alertHeight = 330;
+    const cx = CANVAS_WIDTH / 2;
+    const top = CANVAS_HEIGHT / 2 - alertHeight / 2;
+
     renderer.drawRect(
-      CANVAS_WIDTH / 2 - alertWidth / 2,
-      CANVAS_HEIGHT / 2 - alertHeight / 2,
+      cx - alertWidth / 2,
+      top,
       alertWidth,
       alertHeight,
       0x16213e,
       { alpha: 0.95 },
     );
-    renderer.drawRect(
-      CANVAS_WIDTH / 2 - alertWidth / 2,
-      CANVAS_HEIGHT / 2 - alertHeight / 2,
-      alertWidth,
-      3,
-      0xfb8000,
-    );
+    renderer.drawRect(cx - alertWidth / 2, top, alertWidth, 3, 0xfb8000);
 
     let title: string;
     let subtitle: string;
 
     if (report.isAttacker) {
       title = 'Attack Report';
-      subtitle = `You attacked ${report.defender}!`;
+      subtitle = `You attacked ${report.defenderName}!`;
     } else {
       title = 'Under Attack!';
       subtitle = `${report.attackerName} attacked you!`;
     }
 
-    renderer.drawText(title, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 85, {
+    let y = top + 25;
+    const lineH = 22;
+
+    renderer.drawText(title, cx, y, {
       fontSize: 24,
       color: 0xfb8000,
       anchor: 0.5,
     });
+    y += lineH + 12;
 
-    renderer.drawText(subtitle, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30, {
+    renderer.drawText(subtitle, cx, y, {
       fontSize: 14,
       color: 0xffffff,
       anchor: 0.5,
     });
-    renderer.drawText(
-      `Employees Lost: ${report.employeesLost}`,
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2,
-      { fontSize: 14, color: 0xffffff, anchor: 0.5 },
-    );
-    renderer.drawText(
-      `Buildings Lost: ${report.buildingsLost}`,
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2 + 20,
-      { fontSize: 14, color: 0xffffff, anchor: 0.5 },
-    );
+    y += lineH;
 
-    renderer.drawText(
-      'Space bar to continue...',
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2 + 70,
-      {
-        fontSize: 12,
-        color: 0xffffff,
+    if (report.troopsSent > 0) {
+      renderer.drawText(`Troops sent: ${report.troopsSent}`, cx, y, {
+        fontSize: 13,
+        color: 0xaaaaaa,
         anchor: 0.5,
-      },
+      });
+    }
+    y += lineH;
+
+    // Your losses
+    const yourSide = report.isAttacker ? report.attacker : report.defender;
+    renderer.drawText('Your losses:', cx, y, {
+      fontSize: 13,
+      color: 0xe74c3c,
+      anchor: 0.5,
+    });
+    y += lineH - 4;
+    renderer.drawText(
+      `${yourSide.employeesLost} employees, ${yourSide.buildingsLost} buildings`,
+      cx,
+      y,
+      { fontSize: 13, color: 0xffffff, anchor: 0.5 },
     );
+    y += lineH + 4;
+
+    // Their losses
+    const theirSide = report.isAttacker ? report.defender : report.attacker;
+    const theirName = report.isAttacker
+      ? report.defenderName
+      : report.attackerName;
+    renderer.drawText(`${theirName}'s losses:`, cx, y, {
+      fontSize: 13,
+      color: 0x2ecc71,
+      anchor: 0.5,
+    });
+    y += lineH - 4;
+    renderer.drawText(
+      `${theirSide.employeesLost} employees, ${theirSide.buildingsLost} buildings`,
+      cx,
+      y,
+      { fontSize: 13, color: 0xffffff, anchor: 0.5 },
+    );
+    y += lineH + 4;
+
+    // Cash stolen
+    if (report.cashStolen > 0) {
+      const cashText = report.isAttacker
+        ? `Funds stolen: +$${report.cashStolen.toLocaleString()}`
+        : `Funds lost: -$${report.cashStolen.toLocaleString()}`;
+      const cashColor = report.isAttacker ? 0x2ecc71 : 0xe74c3c;
+      renderer.drawText(cashText, cx, y, {
+        fontSize: 14,
+        color: cashColor,
+        anchor: 0.5,
+      });
+    }
+
+    renderer.drawText('Space bar to continue...', cx, top + alertHeight - 30, {
+      fontSize: 12,
+      color: 0xaaaaaa,
+      anchor: 0.5,
+    });
   }
 }
