@@ -12,7 +12,7 @@ export interface GridPos {
 // --- Constants ---
 
 export const STARTING_FUNDS = 100_000;
-export const ATTACK_INTERVAL_TICKS = 300;
+export const EVENT_INTERVAL_TICKS = 300;
 export const MAP_DEFENSE = 0;
 export const OFFICE_EMPLOYEE_HEALTH = 1;
 export const SELL_PERCENTAGE = 0.8;
@@ -268,6 +268,19 @@ export interface DamageReport {
   cashStolen: number;
 }
 
+// --- Random Events ---
+
+export interface EventResult {
+  title: string;
+  message: string;
+}
+
+export interface EventConfig {
+  label: string;
+  weight: number;
+  effect: (world: CorporateWorld) => EventResult;
+}
+
 // --- Player Actions (client → server) ---
 
 export type GameAction =
@@ -318,7 +331,8 @@ export interface GameState {
   mapDefense: number;
   grid: Tile[][];
   attackActive: DamageReport | null;
-  attackTimer: number;
+  eventResult: EventResult | null;
+  eventTimer: number;
   attackCooldown: number;
   defenseBuffer: number;
   players: PlayerInfo[];
@@ -359,7 +373,8 @@ export function createWorld(
     selectedTile: null,
     hoveredTile: null,
     attackActive: null,
-    attackTimer: ATTACK_INTERVAL_TICKS,
+    eventResult: null,
+    eventTimer: EVENT_INTERVAL_TICKS,
     attackCooldown: 0,
     defenseBuffer: 0,
     players: [],

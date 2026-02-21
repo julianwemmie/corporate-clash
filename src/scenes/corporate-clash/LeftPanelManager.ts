@@ -91,8 +91,8 @@ export class LeftPanelManager implements Manager {
         color: 0xcccccc,
       });
 
-      const nextAttackSecs = Math.ceil(world.attackTimer * TICK_RATE_S);
-      renderer.drawText(`Next raid: ${nextAttackSecs}s`, 10, 226, {
+      const nextAttackSecs = Math.ceil(world.eventTimer * TICK_RATE_S);
+      renderer.drawText(`Next Event: ${nextAttackSecs}s`, 10, 226, {
         fontSize: 14,
         color: 0xe74c3c,
       });
@@ -108,7 +108,7 @@ export class LeftPanelManager implements Manager {
       let bottomY = CANVAS_HEIGHT - 24;
       if (world.attackCooldown > 0) {
         const cooldownSecs = Math.ceil(world.attackCooldown * TICK_RATE_S);
-        renderer.drawText(`Attack cooldown: ${cooldownSecs}s`, 10, bottomY, {
+        renderer.drawText(`Event cooldown: ${cooldownSecs}s`, 10, bottomY, {
           fontSize: 14,
           color: 0xe74c3c,
         });

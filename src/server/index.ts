@@ -6,7 +6,7 @@ import {
   BUILDING_TYPES,
   EMPLOYEE_CONFIG,
   EMPLOYEE_TYPES,
-  ATTACK_INTERVAL_TICKS,
+  EVENT_INTERVAL_TICKS,
   SELL_PERCENTAGE,
   UPGRADE_PATH,
   UPGRADE_COST_FACTOR,
@@ -14,6 +14,7 @@ import {
   getEmployeeCategory,
   type CorporateWorld,
   type DamageReport,
+  type EventConfig,
   type GameAction,
   type GameState,
   type PlayerInfo,
@@ -40,6 +41,224 @@ interface PlayerState {
   defenseBuffer: number;
 }
 
+const EVENTS: EventConfig[] = [
+  {
+    label: 'Corporate Raid',
+    weight: 3,
+    effect: (world) => {
+      let totalHeadcount = 0;
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (tile.building) totalHeadcount += tile.building.employees.length;
+        }
+      }
+      if (totalHeadcount === 0) {
+        return { title: 'Raid Averted', message: 'Corporate Raiders found nothing to attack.' };
+      }
+
+      let killRolls = 0;
+      for (let i = 0; i < totalHeadcount; i++) {
+        if (Math.random() < NPC_DAMAGE_PERCENT) killRolls++;
+      }
+      if (killRolls === 0) {
+        return { title: 'Raid Repelled', message: 'Corporate Raiders attacked but caused no damage!' };
+      }
+
+      let lawyersLost = 0;
+      let employeesLost = 0;
+      let buildingsLost = 0;
+
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (!tile.building || killRolls <= 0) continue;
+          tile.building.employees = tile.building.employees.filter((e) => {
+            if (killRolls <= 0) return true;
+            if (getEmployeeCategory(e.type) === 'lawfirm') {
+              killRolls -= EMPLOYEE_CONFIG[e.type].health;
+              lawyersLost++;
+              world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+              return false;
+            }
+            return true;
+          });
+          if (tile.building.employees.length === 0) {
+            tile.building = null;
+            buildingsLost++;
+          }
+        }
+      }
+
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (!tile.building || killRolls <= 0) continue;
+          tile.building.employees = tile.building.employees.filter((e) => {
+            if (killRolls <= 0) return true;
+            if (getEmployeeCategory(e.type) === 'office') {
+              killRolls--;
+              employeesLost++;
+              world.mapDefense -= EMPLOYEE_CONFIG[e.type].defenseBoost;
+              return false;
+            }
+            return true;
+          });
+          if (tile.building.employees.length === 0) {
+            tile.building = null;
+            buildingsLost++;
+          }
+        }
+      }
+
+      const totalLost = employeesLost + lawyersLost;
+      return {
+        title: 'Under Attack!',
+        message: `Corporate Raiders attacked! You lost ${totalLost} employees and ${buildingsLost} buildings.`,
+      };
+    },
+  },
+  {
+    label: 'Market Boom',
+    weight: 1,
+    effect: (world) => {
+      let employeeCount = 0;
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (tile.building) employeeCount += tile.building.employees.length;
+        }
+      }
+      if (employeeCount === 0) {
+        const flat = 10_000;
+        world.funds += flat;
+        return { title: 'Market Boom', message: `Bull market! Gained $${flat.toLocaleString()} from index funds.` };
+      }
+      const bonus = employeeCount * 5_000;
+      world.funds += bonus;
+      return { title: 'Market Boom', message: `Bull market! Your ${employeeCount} employees capitalized — gained $${bonus.toLocaleString()}.` };
+    },
+  },
+  {
+    label: 'Lawsuit',
+    weight: 2,
+    effect: (world) => {
+      // Find a lawyer to absorb the lawsuit
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (!tile.building) continue;
+          const lawyerIdx = tile.building.employees.findIndex(
+            (e) => getEmployeeCategory(e.type) === 'lawfirm',
+          );
+          if (lawyerIdx !== -1) {
+            const lawyer = tile.building.employees[lawyerIdx];
+            const config = EMPLOYEE_CONFIG[lawyer.type];
+            world.mapDefense -= config.defenseBoost;
+            tile.building.employees.splice(lawyerIdx, 1);
+            if (tile.building.employees.length === 0) {
+              tile.building = null;
+            }
+            return { title: 'Lawsuit Defended', message: `Your ${config.label} handled the case but burned out and left the firm.` };
+          }
+        }
+      }
+      // No lawyers — pay a steep fine
+      const fine = Math.floor(world.funds * 0.25);
+      world.funds -= fine;
+      return { title: 'Lawsuit Filed', message: `No lawyers to defend you! Settled for $${fine.toLocaleString()}.` };
+    },
+  },
+  {
+    label: 'Talent Poaching',
+    weight: 2,
+    effect: (world) => {
+      // Target the most expensive employee
+      let bestTile: typeof world.grid[0][0] | null = null;
+      let bestIdx = -1;
+      let bestCost = -1;
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (!tile.building) continue;
+          for (let i = 0; i < tile.building.employees.length; i++) {
+            const cost = EMPLOYEE_CONFIG[tile.building.employees[i].type].cost;
+            if (cost > bestCost) {
+              bestCost = cost;
+              bestTile = tile;
+              bestIdx = i;
+            }
+          }
+        }
+      }
+      if (!bestTile || bestIdx === -1) {
+        return { title: 'Poaching Attempt', message: 'A competitor tried to poach your staff, but you have no employees!' };
+      }
+      const emp = bestTile.building!.employees[bestIdx];
+      const config = EMPLOYEE_CONFIG[emp.type];
+      world.mapDefense -= config.defenseBoost;
+      bestTile.building!.employees.splice(bestIdx, 1);
+      if (bestTile.building!.employees.length === 0) {
+        bestTile.building = null;
+      }
+      return { title: 'Talent Poached', message: `A competitor hired away your ${config.label} ($${config.cost.toLocaleString()} to replace)!` };
+    },
+  },
+  {
+    label: 'Tax Audit',
+    weight: 1,
+    effect: (world) => {
+      let buildingCount = 0;
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (tile.building) buildingCount++;
+        }
+      }
+      const finePerBuilding = 10_000;
+      const fine = Math.max(5_000, buildingCount * finePerBuilding);
+      world.funds -= fine;
+      return {
+        title: 'IRS Audit',
+        message: buildingCount > 0
+          ? `Auditors found discrepancies across ${buildingCount} properties. You paid $${fine.toLocaleString()} in back taxes.`
+          : `Routine audit. Minimum filing penalty: $${fine.toLocaleString()}.`,
+      };
+    },
+  },
+  {
+    label: 'Office Affair',
+    weight: 1,
+    effect: (world) => {
+      // Find a building with 2+ employees — the couple leaves
+      for (const row of world.grid) {
+        for (const tile of row) {
+          if (!tile.building || tile.building.employees.length < 2) continue;
+          const emp1 = tile.building.employees[0];
+          const emp2 = tile.building.employees[1];
+          const config1 = EMPLOYEE_CONFIG[emp1.type];
+          const config2 = EMPLOYEE_CONFIG[emp2.type];
+          world.mapDefense -= config1.defenseBoost + config2.defenseBoost;
+          tile.building.employees.splice(0, 2);
+          if (tile.building.employees.length === 0) {
+            tile.building = null;
+          }
+          return {
+            title: 'Office Scandal!',
+            message: `Your ${config1.label} and ${config2.label} were caught in an affair. Both resigned in disgrace.`,
+          };
+        }
+      }
+      // No building with 2+ employees
+      const fine = Math.floor(world.funds * 0.05);
+      world.funds -= fine;
+      return { title: 'Tabloid Gossip', message: `Rumors about your company hit the tabloids. PR damage cost $${fine.toLocaleString()}.` };
+    },
+  },
+];
+
+function pickWeightedEvent(): EventConfig {
+  const totalWeight = EVENTS.reduce((sum, e) => sum + e.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const event of EVENTS) {
+    roll -= event.weight;
+    if (roll <= 0) return event;
+  }
+  return EVENTS[0];
+}
 const players = new Map<string, PlayerState>();
 const economyManager = new EconomyManager();
 
@@ -50,7 +269,7 @@ function generateId(): string {
 }
 
 function toGameState(player: PlayerState): GameState {
-  const { phase, funds, mapDefense, grid, attackActive, attackTimer } =
+  const { phase, funds, mapDefense, grid, attackActive, eventResult, eventTimer } =
     player.world;
 
   const scoreboard: PlayerInfo[] = [];
@@ -81,7 +300,8 @@ function toGameState(player: PlayerState): GameState {
     mapDefense,
     grid,
     attackActive,
-    attackTimer,
+    eventResult,
+    eventTimer,
     attackCooldown: player.attackCooldown,
     defenseBuffer: player.defenseBuffer,
     players: scoreboard,
@@ -96,97 +316,13 @@ setInterval(() => {
     economyManager.update(player.world);
     if (player.attackCooldown > 0) player.attackCooldown--;
 
-    // NPC periodic attacks
-    player.world.attackTimer--;
-    if (player.world.attackTimer <= 0) {
-      player.world.attackTimer = ATTACK_INTERVAL_TICKS;
+    // Random events
+    player.world.eventTimer--;
+    if (player.world.eventTimer <= 0) {
+      player.world.eventTimer = EVENT_INTERVAL_TICKS;
 
-      // Only raid if player has no immunity and has employees
-      if (player.defenseBuffer <= 0) {
-        let totalHeadcount = 0;
-        for (const row of player.world.grid) {
-          for (const tile of row) {
-            if (tile.building) totalHeadcount += tile.building.employees.length;
-          }
-        }
-
-        if (totalHeadcount > 0) {
-          // Roll dice: each headcount gets a 30% chance to generate a kill
-          let killRolls = 0;
-          for (let i = 0; i < totalHeadcount; i++) {
-            if (Math.random() < NPC_DAMAGE_PERCENT) killRolls++;
-          }
-
-          if (killRolls > 0) {
-            let lawyersLost = 0;
-            let employeesLost = 0;
-            let buildingsLost = 0;
-
-            // Pass 1: lawyers absorb kills first (1 lawyer = 3 kills)
-            for (const row of player.world.grid) {
-              for (const tile of row) {
-                if (!tile.building || killRolls <= 0) continue;
-                tile.building.employees = tile.building.employees.filter(
-                  (e) => {
-                    if (killRolls <= 0) return true;
-                    if (getEmployeeCategory(e.type) === 'lawfirm') {
-                      killRolls -= EMPLOYEE_CONFIG[e.type].health;
-                      lawyersLost++;
-                      player.world.mapDefense -=
-                        EMPLOYEE_CONFIG[e.type].defenseBoost;
-                      return false;
-                    }
-                    return true;
-                  },
-                );
-                if (tile.building.employees.length === 0) {
-                  tile.building = null;
-                  buildingsLost++;
-                }
-              }
-            }
-
-            // Pass 2: remaining kills hit regular employees
-            for (const row of player.world.grid) {
-              for (const tile of row) {
-                if (!tile.building || killRolls <= 0) continue;
-                tile.building.employees = tile.building.employees.filter(
-                  (e) => {
-                    if (killRolls <= 0) return true;
-                    if (getEmployeeCategory(e.type) === 'office') {
-                      killRolls--;
-                      employeesLost++;
-                      player.world.mapDefense -=
-                        EMPLOYEE_CONFIG[e.type].defenseBoost;
-                      return false;
-                    }
-                    return true;
-                  },
-                );
-                if (tile.building.employees.length === 0) {
-                  tile.building = null;
-                  buildingsLost++;
-                }
-              }
-            }
-
-            player.world.attackActive = {
-              isAttacker: false,
-              attackerName: 'Corporate Raiders',
-              defenderName: player.name,
-              troopsSent: 0,
-              attacker: { employeesLost: 0, buildingsLost: 0 },
-              defender: {
-                employeesLost: employeesLost + lawyersLost,
-                buildingsLost,
-              },
-              cashStolen: 0,
-            };
-          }
-
-          player.defenseBuffer = DEFENSE_BUFFER_TICKS;
-        }
-      }
+      const event = pickWeightedEvent();
+      player.world.eventResult = event.effect(player.world);
     }
 
     if (player.defenseBuffer > 0) player.defenseBuffer--;
@@ -198,6 +334,7 @@ setInterval(() => {
       player.client.resolve({ data, id: tickId });
     }
     player.world.attackActive = null;
+    player.world.eventResult = null;
   }
 }, TICK_RATE_MS);
 
