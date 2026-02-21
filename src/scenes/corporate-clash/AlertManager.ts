@@ -55,7 +55,15 @@ export class AlertManager implements Manager {
 
   private renderEvent(renderer: Renderer, cx: number, event: EventResult) {
     const alertWidth = 450;
-    const alertHeight = 180;
+    const padding = 20;
+    const textWidth = alertWidth - padding * 2;
+
+    // Estimate wrapped message height: ~18px per line, ~50 chars per line at fontSize 14
+    const charsPerLine = Math.floor(textWidth / 7.5);
+    const lineCount = Math.max(1, Math.ceil(event.message.length / charsPerLine));
+    const messageHeight = lineCount * 18;
+
+    const alertHeight = 80 + messageHeight + 50;
     const top = CANVAS_HEIGHT / 2 - alertHeight / 2;
 
     renderer.drawRect(
@@ -74,10 +82,11 @@ export class AlertManager implements Manager {
       anchor: 0.5,
     });
 
-    renderer.drawText(event.message, cx, top + 80, {
+    renderer.drawText(event.message, cx, top + 70, {
       fontSize: 14,
       color: 0xffffff,
       anchor: 0.5,
+      wordWrapWidth: textWidth,
     });
 
     renderer.drawText('Space bar to continue...', cx, top + alertHeight - 30, {

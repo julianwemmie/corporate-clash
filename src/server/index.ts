@@ -347,9 +347,16 @@ const EVENTS: EventConfig[] = [
       world.funds = Math.floor(world.funds * 0.1);
       const fundsLost = previousFunds - world.funds;
       if (buildingsLost === 0 && fundsLost === 0) {
-        return { title: 'Intern Incident', message: 'The intern tried to delete the production database, but there was nothing to delete.' };
+        return {
+          title: 'Intern Incident',
+          message:
+            'The intern tried to delete the production database, but there was nothing to delete.',
+        };
       }
-      return { title: 'INTERN DELETED PROD DB', message: `An unpaid intern ran DROP TABLE in production. You lost ${buildingsLost} building${buildingsLost === 1 ? '' : 's'}, ${employeesLost} employee${employeesLost === 1 ? '' : 's'}, and $${fundsLost.toLocaleString()} in recovered funds. 90% of your cash is gone.` };
+      return {
+        title: 'INTERN DELETED PROD DB',
+        message: `An unpaid intern ran DROP TABLE in production. You lost ${buildingsLost} building${buildingsLost === 1 ? '' : 's'}, ${employeesLost} employee${employeesLost === 1 ? '' : 's'}, and $${fundsLost.toLocaleString()} in recovered funds. 90% of your cash is gone.`,
+      };
     },
   },
 ];
@@ -427,13 +434,16 @@ setInterval(() => {
     economyManager.update(player.world);
     if (player.attackCooldown > 0) player.attackCooldown--;
 
-    // Random events
+    // Random events (skipped while shield is active)
     player.world.eventTimer--;
     if (player.world.eventTimer <= 0) {
       player.world.eventTimer = EVENT_INTERVAL_TICKS;
 
-      const event = pickWeightedEvent();
-      player.world.eventResult = event.effect(player.world);
+      if (player.defenseBuffer <= 0) {
+        const event = pickWeightedEvent();
+        player.world.eventResult = event.effect(player.world);
+        player.defenseBuffer = EVENT_INTERVAL_TICKS;
+      }
     }
 
     if (player.defenseBuffer > 0) player.defenseBuffer--;
