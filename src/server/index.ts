@@ -20,7 +20,7 @@ import {
 } from '../scenes/corporate-clash/types.js';
 import { EconomyManager } from './EconomyManager.js';
 
-const MAX_PLAYERS = 20;
+const MAX_PLAYERS = 50;
 const ATTACK_COOLDOWN_TICKS = 100;
 const DEFENSE_BUFFER_TICKS = 400; // 60s immunity after being attacked
 const NPC_DAMAGE_PERCENT = 0.3;
