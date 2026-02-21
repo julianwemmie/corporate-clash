@@ -316,8 +316,7 @@ export class MapManager implements Manager {
         isHovering && hovered.row === row && hovered.col === col;
       const isThisTileSelected =
         selected && selected.row === row && selected.col === col;
-      const tileAlpha =
-        hasActive && !isThisTileHovered && !isThisTileSelected ? 0.3 : 1;
+      const tileAlpha = isThisTileHovered || isThisTileSelected ? 1 : 0.3;
 
       const leftH =
         this.tileTextures.left.height * (HALF_W / this.tileTextures.left.width);
