@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/assets/corporate-clash-logo.png" alt="Corporate Clash Logo" width="400" />
+</p>
+
 # Corporate Clash
 
 Clash of Clans, but corporate. Build your office empire, hire employees, retain lawyers, and hostile-takeover your rivals in this multiplayer real-time strategy game.
