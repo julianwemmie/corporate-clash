@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@hono/vite-dev-server": "^0.25.0",
+    "croner": "^10.0.1",
     "hono": "^4.12.0",
     "pixi.js": "8.16.0"
   },

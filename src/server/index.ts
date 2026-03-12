@@ -20,6 +20,7 @@ import {
   type PlayerInfo,
 } from '../scenes/corporate-clash/types.js';
 import { EconomyManager } from './EconomyManager.js';
+import { startCronJobs } from './cron.js';
 
 const MAX_PLAYERS = 50;
 const ATTACK_COOLDOWN_TICKS = 100;
@@ -913,5 +914,7 @@ app.get('/game/stream', (c) => {
     }
   });
 });
+
+startCronJobs(players);
 
 export default app;
