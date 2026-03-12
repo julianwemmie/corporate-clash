@@ -40,7 +40,7 @@ export class AttackPanelManager implements Manager {
     // Phase 1: Picking a target (no target selected yet)
     if (!targetId) {
       const otherPlayers = world.players.filter((p) => p.id !== world.playerId);
-      if (otherPlayers.length === 0) return;
+      if (otherPlayers.length === 0) return; // no targets, only Esc works
 
       if (key === 'ArrowUp') {
         this.selectedIndex =
@@ -148,12 +148,26 @@ export class AttackPanelManager implements Manager {
 
     // Phase 1: Pick target
     if (!targetId) {
+      const otherPlayers = world.players.filter((p) => p.id !== world.playerId);
+
+      if (otherPlayers.length === 0) {
+        renderer.drawText('No other players online.', PANEL_X, y, {
+          fontSize: OPTION_SIZE,
+          color: DIM,
+        });
+        y += LINE_HEIGHT;
+        renderer.drawText('[ESC] Close', PANEL_X, y + 4, {
+          fontSize: OPTION_SIZE,
+          color: 0xaaaaaa,
+        });
+        return;
+      }
+
       renderer.drawText('Pick target:', PANEL_X, y, {
         fontSize: OPTION_SIZE,
         color: 0x997744,
       });
       y += LINE_HEIGHT;
-      const otherPlayers = world.players.filter((p) => p.id !== world.playerId);
       otherPlayers.forEach((p, i) => {
         const shielded = p.defenseBuffer > 0;
         const shieldSecs = Math.ceil(p.defenseBuffer * TICK_RATE_S);
