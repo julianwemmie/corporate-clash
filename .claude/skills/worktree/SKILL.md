@@ -72,11 +72,13 @@ git status
 ```
 
 If there are changes to commit:
+
 ```bash
 git commit -m "<descriptive message based on the changes>"
 ```
 
 Then push:
+
 ```bash
 git push -u origin <branch-name>
 ```
@@ -104,6 +106,7 @@ gh pr view <branch-name> --json mergeStateStatus
 ```
 
 If there are merge conflicts:
+
 1. In the worktree, rebase onto main:
    ```bash
    cd <worktree-path>

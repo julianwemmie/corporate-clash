@@ -15,6 +15,7 @@ Tasks are organized in `./tasks/`:
 - **Done tasks** — completed tasks go in `tasks/.done/`.
 
 Current group folders:
+
 - `cli-distribution/` — CLI tool, npm publishing, plugins
 - `branding-navigation/` — branding, routing, nav UI
 - `card-review-ux/` — card review flow, animations, input modes
