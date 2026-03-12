@@ -1,3 +1,4 @@
+import type { Texture } from 'pixi.js';
 import {
   type Scene,
   type GameContext,
@@ -49,8 +50,13 @@ function calculateRelativePixelXY(
 export class CorporateClashScene implements Scene {
   private world!: CorporateWorld;
   private managers: Manager[] = [];
+  private textures: Record<string, Texture>;
 
   private network!: NetworkManager;
+
+  constructor(textures: Record<string, Texture>) {
+    this.textures = textures;
+  }
 
   init(ctx: GameContext): void {
     this.world = createWorld(ctx.gridSize, ctx.playerId);
@@ -60,11 +66,11 @@ export class CorporateClashScene implements Scene {
 
     this.managers = [
       this.network,
-      new MapManager(),
+      new MapManager(this.textures),
       new LeftPanelManager(),
       new RightPanelManager(),
       new AttackPanelManager(),
-      new AlertManager(),
+      new AlertManager(this.textures),
     ];
   }
 

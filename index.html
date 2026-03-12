@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Corporate Clash</title>
+    <link rel="preload" href="/assets/corporate-clash-logo.png" as="image" />
     <style>
       body {
         margin: 0;
@@ -72,6 +73,45 @@
       ></div>
     </div>
     <div id="app" style="display: none"></div>
+    <div
+      id="loading"
+      style="
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        font-family: monospace;
+        color: #fff;
+      "
+    >
+      <img
+        src="/assets/corporate-clash-logo.png"
+        alt="Corporate Clash"
+        style="width: 400px; margin-bottom: 8px"
+      />
+      <div
+        id="loading-bar-bg"
+        style="
+          width: 320px;
+          height: 24px;
+          background: #16213e;
+          border: 2px solid #fb8000;
+          border-radius: 4px;
+          overflow: hidden;
+        "
+      >
+        <div
+          id="loading-bar-fill"
+          style="
+            width: 0%;
+            height: 100%;
+            background: #fb8000;
+            transition: width 0.15s ease;
+          "
+        ></div>
+      </div>
+      <div id="loading-message" style="font-size: 16px; color: #aaaaaa"></div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
