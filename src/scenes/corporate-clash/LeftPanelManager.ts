@@ -117,7 +117,7 @@ export class LeftPanelManager implements Manager {
 
       renderer.drawText('[A] Attack', 10, bottomY, {
         fontSize: 14,
-        color: 0x997744,
+        color: 0xffcc66,
       });
       bottomY -= 20;
 
@@ -131,7 +131,7 @@ export class LeftPanelManager implements Manager {
         `[R] Rotate | Facing ${dirLabels[world.mapRotation]}`,
         10,
         bottomY,
-        { fontSize: 14, color: 0x997744 },
+        { fontSize: 14, color: 0xffcc66 },
       );
     }
   }
