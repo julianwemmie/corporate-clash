@@ -13,6 +13,73 @@ const nameInput = document.getElementById('name-input') as HTMLInputElement;
 const joinBtn = document.getElementById('join-btn')!;
 const joinError = document.getElementById('join-error')!;
 
+const tutorialDiv = document.getElementById('tutorial')!;
+const tutorialPages =
+  tutorialDiv.querySelectorAll<HTMLElement>('.tutorial-page');
+const tutorialDots = tutorialDiv.querySelectorAll<HTMLElement>('.tutorial-dot');
+const tutorialNext = document.getElementById('tutorial-next')!;
+const tutorialSkip = document.getElementById('tutorial-skip')!;
+
+let tutorialPage = 0;
+const totalPages = tutorialPages.length;
+
+function showTutorialPage(page: number) {
+  tutorialPage = page;
+  tutorialPages.forEach((el, i) => {
+    el.style.display = i === page ? 'block' : 'none';
+  });
+  tutorialDots.forEach((dot, i) => {
+    dot.style.background = i === page ? '#fb8000' : '#444';
+  });
+  tutorialNext.textContent = page === totalPages - 1 ? 'Play' : 'Next';
+}
+
+function showTutorial(): Promise<void> {
+  return new Promise((resolve) => {
+    joinDiv.style.display = 'none';
+    tutorialDiv.style.display = 'flex';
+    tutorialDiv.style.flexDirection = 'column';
+    tutorialDiv.style.alignItems = 'center';
+    tutorialDiv.style.justifyContent = 'center';
+    tutorialDiv.style.minHeight = '100vh';
+    tutorialDiv.style.padding = '20px';
+    showTutorialPage(0);
+
+    const onNext = () => {
+      if (tutorialPage < totalPages - 1) {
+        showTutorialPage(tutorialPage + 1);
+      } else {
+        cleanup();
+        resolve();
+      }
+    };
+
+    const onSkip = () => {
+      cleanup();
+      resolve();
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === 'ArrowRight') onNext();
+      if (e.key === 'Escape') onSkip();
+    };
+
+    function cleanup() {
+      tutorialNext.removeEventListener('click', onNext);
+      tutorialSkip.removeEventListener('click', onSkip);
+      document.removeEventListener('keydown', onKeyDown);
+      tutorialDiv.style.display = 'none';
+    }
+
+    tutorialNext.addEventListener('click', onNext);
+    tutorialSkip.addEventListener('click', onSkip);
+    // Defer so the Enter keypress that triggered "Join Game" doesn't immediately advance
+    requestAnimationFrame(() => {
+      document.addEventListener('keydown', onKeyDown);
+    });
+  });
+}
+
 async function join(): Promise<string> {
   const name = nameInput.value.trim();
   if (!name) throw new Error('Name is required');
@@ -88,7 +155,13 @@ async function startGame(playerId: string, textures: Record<string, Texture>) {
 
 joinBtn.addEventListener('click', async () => {
   joinError.textContent = '';
+  const name = nameInput.value.trim();
+  if (!name) {
+    joinError.textContent = 'Name is required';
+    return;
+  }
   try {
+    await showTutorial();
     const playerId = await join();
     const { clearMessages } = showLoadingScreen();
 
@@ -99,6 +172,7 @@ joinBtn.addEventListener('click', async () => {
     clearMessages();
     await startGame(playerId, textures);
   } catch (e) {
+    joinDiv.style.display = 'flex';
     joinError.textContent = (e as Error).message;
     // If error during loading, show join screen again
     if (loadingDiv.style.display !== 'none') {
