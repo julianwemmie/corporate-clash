@@ -39,10 +39,10 @@ The game runs at `http://localhost:5173`. Open multiple tabs to play multiplayer
 
 ## Commands
 
-| Command            | Description                  |
-| ------------------ | ---------------------------- |
-| `bun run dev`      | Start dev server             |
-| `bun run build`    | Production build             |
-| `bun run start`    | Build + start prod server    |
-| `bun run lint`     | Lint with ESLint             |
-| `bun run format`   | Format with Prettier         |
+| Command          | Description               |
+| ---------------- | ------------------------- |
+| `bun run dev`    | Start dev server          |
+| `bun run build`  | Production build          |
+| `bun run start`  | Build + start prod server |
+| `bun run lint`   | Lint with ESLint          |
+| `bun run format` | Format with Prettier      |
