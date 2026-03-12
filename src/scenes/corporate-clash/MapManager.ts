@@ -22,7 +22,7 @@ import {
   type GridPos,
   type Manager,
 } from './types.js';
-import { Assets, Texture } from 'pixi.js';
+import type { Texture } from 'pixi.js';
 
 const HALF_W = ISO_TILE_W / 2;
 const HALF_H = ISO_TILE_H / 2;
@@ -33,14 +33,29 @@ const ISO_ORIGIN_Y = (MAP_AREA_H - GRID_SIZE * ISO_TILE_H) / 2 + HALF_H;
 
 const MAX = GRID_SIZE - 1;
 export class MapManager implements Manager {
-  private buildingTextures = new Map<string, Texture>();
+  private buildingTextures: Map<string, Texture>;
   private tileTextures: {
     top: Texture;
     left: Texture;
     right: Texture;
-  } | null = null;
-  private backgroundTexture: Texture | null = null;
+  };
+  private backgroundTexture: Texture;
   private rotation: 0 | 1 | 2 | 3 = 0;
+
+  constructor(textures: Record<string, Texture>) {
+    this.backgroundTexture = textures['/assets/background.png'];
+    this.buildingTextures = new Map([
+      ['smallOffice', textures['/assets/buildings/smallOffice.png']],
+      ['mediumOffice', textures['/assets/buildings/mediumOffice.png']],
+      ['largeOffice', textures['/assets/buildings/largeOffice.png']],
+      ['lawfirm', textures['/assets/buildings/lawfirm.png']],
+    ]);
+    this.tileTextures = {
+      top: textures['/assets/tiles/base-top.png'],
+      left: textures['/assets/tiles/base-left.png'],
+      right: textures['/assets/tiles/base-right.png'],
+    };
+  }
 
   private rotateCoords(row: number, col: number): { row: number; col: number } {
     switch (this.rotation) {
@@ -294,62 +309,20 @@ export class MapManager implements Manager {
   }
 
   render(world: CorporateWorld, renderer: Renderer): void {
-    // Load textures if not loaded
-    if (this.buildingTextures.size === 0) {
-      Assets.load([
-        '/assets/buildings/smallOffice.png',
-        '/assets/buildings/mediumOffice.png',
-        '/assets/buildings/largeOffice.png',
-        '/assets/buildings/lawfirm.png',
-        '/assets/tiles/base-top.png',
-        '/assets/tiles/base-left.png',
-        '/assets/tiles/base-right.png',
-        '/assets/background.png',
-      ]).then((textures) => {
-        for (const texture of Object.values(textures) as Texture[]) {
-          texture.source.scaleMode = 'nearest';
-        }
-        this.backgroundTexture = textures['/assets/background.png'];
-        this.buildingTextures.set(
-          'smallOffice',
-          textures['/assets/buildings/smallOffice.png'],
-        );
-        this.buildingTextures.set(
-          'mediumOffice',
-          textures['/assets/buildings/mediumOffice.png'],
-        );
-        this.buildingTextures.set(
-          'largeOffice',
-          textures['/assets/buildings/largeOffice.png'],
-        );
-        this.buildingTextures.set(
-          'lawfirm',
-          textures['/assets/buildings/lawfirm.png'],
-        );
-        this.tileTextures = {
-          top: textures['/assets/tiles/base-top.png'],
-          left: textures['/assets/tiles/base-left.png'],
-          right: textures['/assets/tiles/base-right.png'],
-        };
-      });
-    }
-
     const hovered = world.hoveredTile;
     const isHovering = hovered && this.isInBounds(world, hovered);
 
     // background image (spans the full canvas)
-    if (this.backgroundTexture) {
-      const mapOriginX = LEFT_PANEL_WIDTH + MAP_PADDING;
-      const bgScale = CANVAS_WIDTH / this.backgroundTexture.width;
-      const bgW = CANVAS_WIDTH;
-      const bgH = this.backgroundTexture.height * bgScale * 1.3;
-      const bgX = (CANVAS_WIDTH - bgW) / 2 - mapOriginX;
-      const bgY = (CANVAS_HEIGHT - bgH) / 2 - MAP_OFFSET_Y - 30;
-      renderer.drawSprite(this.backgroundTexture, bgX, bgY, {
-        width: bgW,
-        height: bgH,
-      });
-    }
+    const mapOriginX = LEFT_PANEL_WIDTH + MAP_PADDING;
+    const bgScale = CANVAS_WIDTH / this.backgroundTexture.width;
+    const bgW = CANVAS_WIDTH;
+    const bgH = this.backgroundTexture.height * bgScale * 1.3;
+    const bgX = (CANVAS_WIDTH - bgW) / 2 - mapOriginX;
+    const bgY = (CANVAS_HEIGHT - bgH) / 2 - MAP_OFFSET_Y - 30;
+    renderer.drawSprite(this.backgroundTexture, bgX, bgY, {
+      width: bgW,
+      height: bgH,
+    });
 
     // ground tiles
     const sortedTiles: { row: number; col: number; depth: number }[] = [];
@@ -363,7 +336,6 @@ export class MapManager implements Manager {
     sortedTiles.sort((a, b) => a.depth - b.depth);
 
     for (const { row, col } of sortedTiles) {
-      if (!this.tileTextures) continue;
       const { x, y } = this.gridToIso(row, col);
       const isThisTileHovered =
         isHovering && hovered.row === row && hovered.col === col;

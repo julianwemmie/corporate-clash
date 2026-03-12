@@ -1,4 +1,4 @@
-import { Assets, Texture } from 'pixi.js';
+import type { Texture } from 'pixi.js';
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
@@ -14,7 +14,11 @@ import type {
 export class AlertManager implements Manager {
   private savedReport: DamageReport | null = null;
   private savedEvent: EventResult | null = null;
-  private eventTextures = new Map<string, Texture>();
+  private textures: Record<string, Texture>;
+
+  constructor(textures: Record<string, Texture>) {
+    this.textures = textures;
+  }
 
   update(world: CorporateWorld): void {
     if (world.attackActive && world.uiMode.kind !== 'alert') {
@@ -60,18 +64,9 @@ export class AlertManager implements Manager {
     const padding = 20;
     const textWidth = alertWidth - padding * 2;
 
-    // Load event image texture if needed
-    let eventTexture: Texture | null = null;
-    if (event.image) {
-      if (this.eventTextures.has(event.image)) {
-        eventTexture = this.eventTextures.get(event.image)!;
-      } else {
-        Assets.load(event.image).then((tex: Texture) => {
-          tex.source.scaleMode = 'nearest';
-          this.eventTextures.set(event.image!, tex);
-        });
-      }
-    }
+    const eventTexture: Texture | null = event.image
+      ? (this.textures[event.image] ?? null)
+      : null;
 
     const imageW = textWidth;
     const imageH = eventTexture
