@@ -10,7 +10,7 @@ const PANEL_X = 10;
 const LINE_HEIGHT = 22;
 const HEADER_SIZE = 18;
 const OPTION_SIZE = 13;
-const DIM = 0x665544;
+const DIM = 0xaaaaaa;
 const BRIGHT = 0xffffff;
 
 export class AttackPanelManager implements Manager {
@@ -141,7 +141,7 @@ export class AttackPanelManager implements Manager {
       y += LINE_HEIGHT;
       renderer.drawText('[ESC] Close', PANEL_X, y, {
         fontSize: OPTION_SIZE,
-        color: 0x997744,
+        color: 0xffcc66,
       });
       return;
     }
@@ -165,7 +165,7 @@ export class AttackPanelManager implements Manager {
 
       renderer.drawText('Pick target:', PANEL_X, y, {
         fontSize: OPTION_SIZE,
-        color: 0x997744,
+        color: 0xffcc66,
       });
       y += LINE_HEIGHT;
       otherPlayers.forEach((p, i) => {
@@ -187,7 +187,7 @@ export class AttackPanelManager implements Manager {
           y,
           {
             fontSize: OPTION_SIZE - 2,
-            color: 0x997744,
+            color: 0xffcc66,
           },
         );
         y += LINE_HEIGHT;
@@ -214,7 +214,7 @@ export class AttackPanelManager implements Manager {
 
       renderer.drawText('Send troops from:', PANEL_X, y, {
         fontSize: OPTION_SIZE,
-        color: 0x997744,
+        color: 0xffcc66,
       });
       y += LINE_HEIGHT;
 

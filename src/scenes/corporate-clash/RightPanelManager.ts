@@ -19,7 +19,7 @@ const PANEL_X = 10;
 const LINE_HEIGHT = 22;
 const HEADER_SIZE = 18;
 const OPTION_SIZE = 13;
-const DIM = 0x665544;
+const DIM = 0xaaaaaa;
 const BRIGHT = 0xffffff;
 
 export class RightPanelManager implements Manager {
@@ -72,7 +72,7 @@ export class RightPanelManager implements Manager {
     // --- Income buildings ---
     renderer.drawText('-- Income --', PANEL_X, y, {
       fontSize: OPTION_SIZE - 1,
-      color: 0x997744,
+      color: 0xffcc66,
     });
     y += LINE_HEIGHT;
 
@@ -101,7 +101,7 @@ export class RightPanelManager implements Manager {
     // --- Defense buildings ---
     renderer.drawText('-- Defense --', PANEL_X, y, {
       fontSize: OPTION_SIZE - 1,
-      color: 0x997744,
+      color: 0xffcc66,
     });
     y += LINE_HEIGHT;
 
@@ -129,7 +129,7 @@ export class RightPanelManager implements Manager {
     y += 4;
     renderer.drawText('[ESC] Close', PANEL_X, y, {
       fontSize: OPTION_SIZE,
-      color: 0x997744,
+      color: 0xffcc66,
     });
   }
 
@@ -157,7 +157,7 @@ export class RightPanelManager implements Manager {
 
     renderer.drawText(`${current}/${capacity} employees`, PANEL_X, y, {
       fontSize: OPTION_SIZE,
-      color: 0x997744,
+      color: 0xffcc66,
     });
     y += LINE_HEIGHT;
 
@@ -226,7 +226,7 @@ export class RightPanelManager implements Manager {
 
     renderer.drawText('[ESC] Close', PANEL_X, y, {
       fontSize: OPTION_SIZE,
-      color: 0x997744,
+      color: 0xffcc66,
     });
   }
 
@@ -265,7 +265,7 @@ export class RightPanelManager implements Manager {
 
     renderer.drawText('[N] Cancel', PANEL_X, y, {
       fontSize: OPTION_SIZE,
-      color: 0x997744,
+      color: 0xffcc66,
     });
   }
 
